@@ -1,0 +1,11 @@
+{
+  "name": "Kru32 — 13 Timer State Machine",
+  "version": "1.0.0",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [{ "path": "../firmware/kru32-automation.bin", "offset": 0 }]
+    }
+  ]
+}

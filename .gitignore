@@ -3,6 +3,9 @@
 .pio/
 build/
 
+# Node
+node_modules/
+
 # Secrets (never commit)
 secrets.yaml
 

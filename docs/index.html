@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kru32 Oracle — ESP32 Display Course Flasher</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+<style>
+  body { background: #060a0f; color: #a8c0d0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  @keyframes kru-spin { to { transform: rotate(360deg); } }
+  .kru-spin { animation: kru-spin 1.5s linear infinite; }
+  @keyframes kru-bounce {
+    0%, 100% { transform: translateY(-70px); }
+    50% { transform: translateY(0); }
+  }
+  .kru-bounce { animation: kru-bounce .8s ease-in infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .kru-spin, .kru-bounce { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="app.js"></script>
+</body>
+</html>

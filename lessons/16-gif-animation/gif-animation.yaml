@@ -1,0 +1,87 @@
+# gif-animation.yaml — บทที่ 16: GIF Animation Frames
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: เล่น GIF หลายเฟรมด้วย animation: component
+#            display update_interval เป็นตัวเดินเฟรม — next_frame() ทุกรอบ
+#            (ball.gif สร้างจาก Pillow — ลูกบอลเด้ง 8 เฟรม 96x96)
+#
+#   uvx esphome compile gif-animation.yaml
+
+esphome:
+  name: kru32-gif
+  friendly_name: Kru32 GIF
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของคุณเอง
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# ── QSPI bus ──
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+# ── Backlight ──
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# ── Animation: GIF 8 เฟรม โหลดเข้า flash ตอน compile ──
+animation:
+  - file: "ball.gif"
+    id: ball_anim
+    type: RGB565
+
+# ── Font: ประกาศ glyphs ทุกตัวที่ใช้ ──
+font:
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 24
+    glyphs: "Kru32 GIFanimto"
+
+# ── จอ: update_interval 80ms = ตัวเดินเฟรม GIF ──
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: 80ms
+    lambda: |-
+      id(ball_anim).next_frame();
+      it.fill(Color::BLACK);
+      it.print(160, 60, id(font_label), Color(0xFF, 0xD2, 0x7F),
+               TextAlign::CENTER, "Kru32 GIF animation");
+      it.image((320 - 96) / 2, (480 - 96) / 2, id(ball_anim));
