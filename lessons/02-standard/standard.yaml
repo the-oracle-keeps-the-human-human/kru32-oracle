@@ -1,0 +1,138 @@
+# standard.yaml — บทที่ 2: จอที่ขยับได้
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: เข้าใจว่า display lambda ถูกเรียกซ้ำทุก frame
+#            ภาพบนจอ = ฟังก์ชันของ state ปัจจุบัน ไม่ใช่รูปที่วาดครั้งเดียว
+#
+#   uvx esphome compile standard.yaml
+
+esphome:
+  name: kru32-standard
+  friendly_name: Kru32 Standard
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของคุณเอง
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# ── ตัวแปร global: counter ที่เพิ่มทุกวินาที ──
+globals:
+  - id: counter
+    type: int
+    initial_value: "0"
+
+# ── interval: บวก counter ทุก 1 วินาที ──
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          id(counter) += 1;
+
+# ── QSPI bus ──
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: 47
+    data_pins: [21, 48, 40, 39]
+
+# ── Backlight: LEDC 25kHz ──
+output:
+  - platform: ledc
+    pin: 1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# ── Brightness slider: คุม backlight runtime ผ่าน number entity ──
+number:
+  - platform: template
+    name: "Brightness"
+    id: brightness_slider
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 100
+    optimistic: true
+    set_action:
+      - light.turn_on:
+          id: backlight
+          brightness: !lambda "return x / 100.0;"
+
+# ── Font: 3 ขนาด — ประกาศ glyphs ทุกตัวที่ใช้ ──
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 36
+    glyphs: "Kru32Standp "
+  - file: "gfonts://Roboto"
+    id: font_counter
+    size: 72
+    glyphs: "0123456789"
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 20
+    glyphs: "second "
+
+# ── จอ: AXS15231 QSPI 320x480 ──
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: 45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    lambda: |-
+      // พื้นดำ
+      it.fill(Color::BLACK);
+
+      // กรอบขอบจอ
+      it.rectangle(10, 10, 300, 460, Color(0x33, 0x33, 0x33));
+
+      // เส้นแบ่งแนวนอน
+      it.line(20, 80, 300, 80, Color(0xFF, 0xC8, 0x00));
+
+      // หัวข้อ
+      it.print(160, 45, id(font_title), Color::WHITE,
+               TextAlign::CENTER, "Kru32 Standard");
+
+      // วงกลมตกแต่ง — ขยับตาม counter
+      int cx = 160 + (id(counter) % 60 - 30) * 3;
+      it.filled_circle(cx, 200, 20, Color(0xFF, 0xC8, 0x00));
+
+      // กล่อง counter
+      it.filled_rectangle(80, 280, 160, 100, Color(0x1A, 0x1A, 0x2E));
+      it.rectangle(80, 280, 160, 100, Color(0xFF, 0xC8, 0x00));
+
+      // ตัวเลข counter — เปลี่ยนทุกวินาที
+      it.printf(160, 310, id(font_counter), Color::WHITE,
+                TextAlign::CENTER, "%d", id(counter));
+
+      // label
+      it.print(160, 400, id(font_label), Color(0xAA, 0xAA, 0xAA),
+               TextAlign::CENTER, "seconds");

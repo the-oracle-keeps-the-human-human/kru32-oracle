@@ -1,0 +1,243 @@
+# sensors.yaml — บทที่ 10: Template Sensors + Display Cards
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: สร้าง internal sensor จำลอง (template) แล้วโชว์ใน card layout
+#            เรียนรู้ sensor → LVGL pipeline + on_value trigger
+#
+#   uvx esphome compile sensors.yaml
+
+esphome:
+  name: kru32-sensors
+  friendly_name: Kru32 Sensors
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+globals:
+  - id: sim_temp
+    type: float
+    initial_value: "25.0"
+  - id: sim_humidity
+    type: float
+    initial_value: "60.0"
+
+interval:
+  - interval: 3s
+    then:
+      - lambda: |-
+          id(sim_temp) += 0.5;
+          if (id(sim_temp) > 35.0) id(sim_temp) = 20.0;
+          id(sim_humidity) -= 1.0;
+          if (id(sim_humidity) < 30.0) id(sim_humidity) = 80.0;
+      - component.update: temp_sensor
+      - component.update: humidity_sensor
+
+sensor:
+  - platform: template
+    name: "Temperature"
+    id: temp_sensor
+    unit_of_measurement: "C"
+    accuracy_decimals: 1
+    lambda: "return id(sim_temp);"
+    update_interval: never
+    on_value:
+      - lvgl.label.update:
+          id: lbl_temp
+          text: !lambda |-
+            char buf[10];
+            snprintf(buf, sizeof(buf), "%.1f C", x);
+            return std::string(buf);
+      - lvgl.bar.update:
+          id: bar_temp
+          value: !lambda "return (int)x;"
+
+  - platform: template
+    name: "Humidity"
+    id: humidity_sensor
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    lambda: "return id(sim_humidity);"
+    update_interval: never
+    on_value:
+      - lvgl.label.update:
+          id: lbl_humidity
+          text: !lambda |-
+            char buf[10];
+            snprintf(buf, sizeof(buf), "%.0f %%", x);
+            return std::string(buf);
+      - lvgl.bar.update:
+          id: bar_humidity
+          value: !lambda "return (int)x;"
+
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sec
+    update_interval: 10s
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_value
+    size: 36
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 14
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: sensor_page
+      bg_color: 0x080810
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 16
+            text: "Sensor Dashboard"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - obj:
+            x: 20
+            y: 60
+            width: 280
+            height: 130
+            bg_color: 0x0F1428
+            bg_opa: COVER
+            radius: 14
+            border_width: 1
+            border_color: 0xFF6B6B
+            pad_all: 14
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Temperature"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_temp
+                  align: CENTER
+                  y: -5
+                  text: "25.0 C"
+                  text_color: 0xFF6B6B
+                  text_font: font_value
+              - bar:
+                  id: bar_temp
+                  align: BOTTOM_MID
+                  width: 240
+                  height: 10
+                  min_value: 20
+                  max_value: 35
+                  value: 25
+                  bg_color: 0x1F1F2F
+                  bg_opa: COVER
+                  radius: 5
+                  indicator:
+                    bg_color: 0xFF6B6B
+                    radius: 5
+
+        - obj:
+            x: 20
+            y: 210
+            width: 280
+            height: 130
+            bg_color: 0x0F1428
+            bg_opa: COVER
+            radius: 14
+            border_width: 1
+            border_color: 0x4FB3FF
+            pad_all: 14
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Humidity"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_humidity
+                  align: CENTER
+                  y: -5
+                  text: "60 %"
+                  text_color: 0x4FB3FF
+                  text_font: font_value
+              - bar:
+                  id: bar_humidity
+                  align: BOTTOM_MID
+                  width: 240
+                  height: 10
+                  min_value: 30
+                  max_value: 80
+                  value: 60
+                  bg_color: 0x1F1F2F
+                  bg_opa: COVER
+                  radius: 5
+                  indicator:
+                    bg_color: 0x4FB3FF
+                    radius: 5

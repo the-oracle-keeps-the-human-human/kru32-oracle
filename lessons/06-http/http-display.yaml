@@ -1,0 +1,241 @@
+# http-display.yaml — บทที่ 6: ดึงข้อมูลจาก HTTP แล้วแสดงผล
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ใช้ http_request + text_sensor เพื่อ fetch ข้อมูล
+#            แล้วโชว์บน LVGL — เรียนรู้ async data + display update
+#
+#   uvx esphome compile http-display.yaml
+
+esphome:
+  name: kru32-http
+  friendly_name: Kru32 HTTP
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+http_request:
+  useragent: "kru32/1.0"
+  timeout: 10s
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 10s
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_signal_sensor
+    update_interval: 30s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: wifi_ip
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 28
+  - file: "gfonts://Roboto"
+    id: font_value
+    size: 36
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 16
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+interval:
+  - interval: 10s
+    then:
+      - lvgl.label.update:
+          id: lbl_uptime
+          text: !lambda |-
+            int sec = (int)id(uptime_sensor).state;
+            int h = sec / 3600;
+            int m = (sec % 3600) / 60;
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%dh %dm", h, m);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_wifi
+          text: !lambda |-
+            int rssi = (int)id(wifi_signal_sensor).state;
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%d dBm", rssi);
+            return std::string(buf);
+      - lvgl.bar.update:
+          id: wifi_bar
+          value: !lambda |-
+            int rssi = (int)id(wifi_signal_sensor).state;
+            return std::max(0, std::min(100, (rssi + 100) * 2));
+      - lvgl.label.update:
+          id: lbl_ip
+          text: !lambda |-
+            if (id(wifi_ip).has_state()) return id(wifi_ip).state;
+            return std::string("connecting...");
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: data_page
+      bg_color: 0x0A0A14
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 20
+            text: "Network Status"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - obj:
+            x: 20
+            y: 80
+            width: 280
+            height: 80
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x2A2A4A
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "WiFi Signal"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_wifi
+                  align: TOP_RIGHT
+                  text: "-- dBm"
+                  text_color: 0x4FB3FF
+                  text_font: font_label
+              - bar:
+                  id: wifi_bar
+                  align: BOTTOM_MID
+                  width: 250
+                  height: 12
+                  min_value: 0
+                  max_value: 100
+                  value: 0
+                  bg_color: 0x1F1F3F
+                  bg_opa: COVER
+                  radius: 6
+                  indicator:
+                    bg_color: 0x4FB3FF
+                    radius: 6
+
+        - obj:
+            x: 20
+            y: 180
+            width: 280
+            height: 70
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x2A2A4A
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "IP Address"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_ip
+                  align: BOTTOM_LEFT
+                  text: "connecting..."
+                  text_color: 0x00FF7F
+                  text_font: font_label
+
+        - obj:
+            x: 20
+            y: 270
+            width: 280
+            height: 70
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x2A2A4A
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Uptime"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_uptime
+                  align: BOTTOM_LEFT
+                  text: "0h 0m"
+                  text_color: 0xFFD27F
+                  text_font: font_value

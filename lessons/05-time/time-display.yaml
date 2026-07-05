@@ -1,0 +1,164 @@
+# time-display.yaml — บทที่ 5: นาฬิกา NTP บนจอ
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ดึงเวลาจาก NTP แล้วโชว์บน LVGL — เรียนรู้ time component
+#            + interval update + strftime
+#
+#   uvx esphome compile time-display.yaml
+
+esphome:
+  name: kru32-time
+  friendly_name: Kru32 Clock
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+time:
+  - platform: sntp
+    id: ntp_time
+    timezone: Asia/Bangkok
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_clock
+    size: 64
+  - file: "gfonts://Roboto"
+    id: font_date
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 18
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+interval:
+  - interval: 1s
+    then:
+      - lvgl.label.update:
+          id: lbl_time
+          text: !lambda |-
+            auto now = id(ntp_time).now();
+            if (!now.is_valid()) return std::string("--:--");
+            char buf[6];
+            snprintf(buf, sizeof(buf), "%02d:%02d", now.hour, now.minute);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_seconds
+          text: !lambda |-
+            auto now = id(ntp_time).now();
+            if (!now.is_valid()) return std::string("--");
+            char buf[3];
+            snprintf(buf, sizeof(buf), "%02d", now.second);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_date
+          text: !lambda |-
+            auto now = id(ntp_time).now();
+            if (!now.is_valid()) return std::string("Waiting for NTP...");
+            char buf[20];
+            snprintf(buf, sizeof(buf), "%04d-%02d-%02d", now.year, now.month, now.day_of_month);
+            return std::string(buf);
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: clock_page
+      bg_color: 0x000000
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 40
+            text: "Kru32 Clock"
+            text_color: 0x888888
+            text_font: font_label
+        - label:
+            id: lbl_time
+            align: CENTER
+            y: -40
+            text: "--:--"
+            text_color: 0xFFD27F
+            text_font: font_clock
+        - label:
+            id: lbl_seconds
+            align: CENTER
+            y: 20
+            text: "--"
+            text_color: 0x4FB3FF
+            text_font: font_date
+        - label:
+            id: lbl_date
+            align: CENTER
+            y: 60
+            text: "Waiting for NTP..."
+            text_color: 0xAAAAAA
+            text_font: font_date
+        - label:
+            align: BOTTOM_MID
+            y: -30
+            text: "NTP: pool.ntp.org"
+            text_color: 0x444444
+            text_font: font_label

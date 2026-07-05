@@ -1,0 +1,220 @@
+# themes.yaml — บทที่ 9: Color Themes — สลับธีมด้วยปุ่ม
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ปุ่ม 3 ปุ่มเปลี่ยนสี bg/text/accent ทั้งหน้า
+#            เรียนรู้ lvgl.widget.update สำหรับ style change runtime
+#
+#   uvx esphome compile themes.yaml
+
+esphome:
+  name: kru32-themes
+  friendly_name: Kru32 Themes
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 28
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 20
+  - file: "gfonts://Roboto"
+    id: font_btn
+    size: 16
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: theme_page
+      bg_color: 0x0A0A14
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            id: lbl_title
+            align: TOP_MID
+            y: 30
+            text: "Theme Demo"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - obj:
+            id: card_demo
+            align: CENTER
+            y: -40
+            width: 260
+            height: 120
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 16
+            border_width: 2
+            border_color: 0xFFD27F
+            pad_all: 16
+            widgets:
+              - label:
+                  id: lbl_card_title
+                  align: TOP_LEFT
+                  text: "Sample Card"
+                  text_color: 0xFFFFFF
+                  text_font: font_body
+              - label:
+                  id: lbl_card_body
+                  align: CENTER
+                  text: "Touch a theme below"
+                  text_color: 0xAAAAAA
+                  text_font: font_body
+              - bar:
+                  id: theme_bar
+                  align: BOTTOM_MID
+                  width: 220
+                  height: 10
+                  min_value: 0
+                  max_value: 100
+                  value: 70
+                  bg_color: 0x1F1F3F
+                  bg_opa: COVER
+                  radius: 5
+                  indicator:
+                    bg_color: 0xFFD27F
+                    radius: 5
+
+        # Theme buttons
+        - obj:
+            align: CENTER
+            y: 80
+            width: 80
+            height: 50
+            bg_color: 0x1A0A2A
+            bg_opa: COVER
+            radius: 10
+            border_width: 1
+            border_color: 0xBB86FC
+            x: -90
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Purple"
+                  text_color: 0xBB86FC
+                  text_font: font_btn
+            on_click:
+              - lvgl.label.update:
+                  id: lbl_title
+                  text_color: 0xBB86FC
+              - lvgl.widget.update:
+                  id: card_demo
+                  border_color: 0xBB86FC
+
+        - obj:
+            align: CENTER
+            y: 80
+            width: 80
+            height: 50
+            bg_color: 0x0A1A1A
+            bg_opa: COVER
+            radius: 10
+            border_width: 1
+            border_color: 0x03DAC5
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Teal"
+                  text_color: 0x03DAC5
+                  text_font: font_btn
+            on_click:
+              - lvgl.label.update:
+                  id: lbl_title
+                  text_color: 0x03DAC5
+              - lvgl.widget.update:
+                  id: card_demo
+                  border_color: 0x03DAC5
+
+        - obj:
+            align: CENTER
+            y: 80
+            width: 80
+            height: 50
+            bg_color: 0x1A1A0A
+            bg_opa: COVER
+            radius: 10
+            border_width: 1
+            border_color: 0xFFD27F
+            x: 90
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Gold"
+                  text_color: 0xFFD27F
+                  text_font: font_btn
+            on_click:
+              - lvgl.label.update:
+                  id: lbl_title
+                  text_color: 0xFFD27F
+              - lvgl.widget.update:
+                  id: card_demo
+                  border_color: 0xFFD27F

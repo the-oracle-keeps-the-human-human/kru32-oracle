@@ -1,0 +1,267 @@
+# production.yaml — บทที่ 16: Production Config — safe mode + fallback + OTA
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: config ที่พร้อม deploy จริง — wifi fallback AP, safe mode,
+#            OTA update, status page, captive portal
+#            เรียนรู้ว่า config "production" ต่างจาก "dev" ยังไง
+#
+#   uvx esphome compile production.yaml
+
+esphome:
+  name: kru32-production
+  friendly_name: Kru32 Production
+  on_boot:
+    priority: 600
+    then:
+      - light.turn_on:
+          id: backlight
+          brightness: 80%
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: WARN
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของจริงก่อน deploy
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+  ap:
+    ssid: "Kru32-Fallback"
+    password: "kru32fallback"
+  power_save_mode: LIGHT
+
+captive_portal:
+
+ota:
+  - platform: esphome
+    password: "kru32-ota-pass"
+
+safe_mode:
+  boot_is_good_after: 60s
+  num_attempts: 5
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_rssi
+    update_interval: 60s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP"
+      id: wifi_ip
+    ssid:
+      name: "SSID"
+      id: wifi_ssid_info
+
+button:
+  - platform: restart
+    name: "Restart"
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 22
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 18
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 14
+
+interval:
+  - interval: 30s
+    then:
+      - lvgl.label.update:
+          id: lbl_ip
+          text: !lambda |-
+            if (id(wifi_ip).has_state()) return id(wifi_ip).state;
+            return std::string("No WiFi");
+      - lvgl.label.update:
+          id: lbl_rssi
+          text: !lambda |-
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%d dBm", (int)id(wifi_rssi).state);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_uptime
+          text: !lambda |-
+            int s = (int)id(uptime_sensor).state;
+            int h = s / 3600; int m = (s % 3600) / 60;
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%dh %dm", h, m);
+            return std::string(buf);
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: status_page
+      bg_color: 0x080810
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 16
+            text: "Production Status"
+            text_color: 0x00FF7F
+            text_font: font_title
+
+        - obj:
+            x: 16
+            y: 60
+            width: 288
+            height: 280
+            bg_color: 0x0F1420
+            bg_opa: COVER
+            radius: 14
+            border_width: 1
+            border_color: 0x1F3540
+            pad_all: 16
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Network"
+                  text_color: 0x888888
+                  text_font: font_small
+
+              - label:
+                  align: TOP_LEFT
+                  y: 30
+                  text: "IP:"
+                  text_color: 0x666666
+                  text_font: font_small
+              - label:
+                  id: lbl_ip
+                  align: TOP_LEFT
+                  y: 28
+                  x: 40
+                  text: "connecting..."
+                  text_color: 0x4FB3FF
+                  text_font: font_body
+
+              - label:
+                  align: TOP_LEFT
+                  y: 65
+                  text: "RSSI:"
+                  text_color: 0x666666
+                  text_font: font_small
+              - label:
+                  id: lbl_rssi
+                  align: TOP_LEFT
+                  y: 63
+                  x: 50
+                  text: "-- dBm"
+                  text_color: 0xFFD27F
+                  text_font: font_body
+
+              - label:
+                  align: TOP_LEFT
+                  y: 100
+                  text: "Uptime:"
+                  text_color: 0x666666
+                  text_font: font_small
+              - label:
+                  id: lbl_uptime
+                  align: TOP_LEFT
+                  y: 98
+                  x: 60
+                  text: "0h 0m"
+                  text_color: 0x00FF7F
+                  text_font: font_body
+
+              - label:
+                  align: TOP_LEFT
+                  y: 145
+                  text: "Features"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  align: TOP_LEFT
+                  y: 170
+                  text: "OTA: enabled"
+                  text_color: 0x00FF7F
+                  text_font: font_small
+              - label:
+                  align: TOP_LEFT
+                  y: 192
+                  text: "Safe Mode: 5 attempts"
+                  text_color: 0x00FF7F
+                  text_font: font_small
+              - label:
+                  align: TOP_LEFT
+                  y: 214
+                  text: "Fallback AP: Kru32-Fallback"
+                  text_color: 0xFFD27F
+                  text_font: font_small
+              - label:
+                  align: TOP_LEFT
+                  y: 236
+                  text: "Captive Portal: enabled"
+                  text_color: 0x00FF7F
+                  text_font: font_small

@@ -1,0 +1,76 @@
+# basic.yaml — บทที่ 1: จอดำ + ข้อความ 1 บรรทัด + backlight ติด
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: simple ที่สุดที่ compile ผ่านและจอติด
+#
+#   uvx esphome compile basic.yaml
+
+esphome:
+  name: kru32-basic
+  friendly_name: Kru32 Basic
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของคุณเอง
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# ── QSPI bus (4 data + clk) ──
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: 47
+    data_pins: [21, 48, 40, 39]
+
+# ── Backlight: GPIO1, 25kHz (ไม่มีเสียงหวีด) ──
+output:
+  - platform: ledc
+    pin: 1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# ── Font: ประกาศ glyphs ทุกตัวที่ใช้ — ตัวไหนไม่ประกาศจะหายเงียบ ──
+font:
+  - file: "gfonts://Roboto"
+    id: font_main
+    size: 32
+    glyphs: "Helokru32 "
+
+# ── จอ: AXS15231 QSPI 320x480 ──
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: 45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    lambda: |-
+      it.fill(Color::BLACK);
+      it.print(160, 240, id(font_main), Color::WHITE,
+               TextAlign::CENTER, "Hello kru32");

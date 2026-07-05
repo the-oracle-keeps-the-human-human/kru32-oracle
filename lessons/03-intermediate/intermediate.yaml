@@ -1,0 +1,210 @@
+# intermediate.yaml — บทที่ 3: LVGL + touch — จอโต้ตอบได้
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: เปลี่ยนจาก display lambda → LVGL widget system
+#            LVGL เป็นเจ้าของจอ — display ต้อง update_interval: never
+#            touch กดปุ่ม → ตัวเลข+bar เปลี่ยน = จอโต้ตอบครั้งแรก
+#
+#   uvx esphome compile intermediate.yaml
+
+esphome:
+  name: kru32-intermediate
+  friendly_name: Kru32 Intermediate
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของคุณเอง
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# ── I2C สำหรับ touch controller ──
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+# ── QSPI bus ──
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins:
+      - GPIO21
+      - GPIO48
+      - GPIO40
+      - GPIO39
+
+# ── Backlight ──
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# ── Touchscreen: AXS15231 capacitive (I2C 0x3B) ──
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+# ── Counter global ──
+globals:
+  - id: counter
+    type: int
+    restore_value: no
+    initial_value: "0"
+
+# ── Font ──
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 28
+  - file: "gfonts://Roboto"
+    id: font_value
+    size: 48
+  - file: "gfonts://Roboto"
+    id: font_btn
+    size: 22
+
+# ── Display: LVGL เป็นเจ้าของจอ ──
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+# ── LVGL ──
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: main_page
+      bg_color: 0x0A0A1A
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        # หัวข้อ
+        - label:
+            align: TOP_MID
+            y: 30
+            text: "Kru32 Interactive"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        # ตัวเลข counter
+        - label:
+            id: lbl_counter
+            align: CENTER
+            y: -60
+            text: "0"
+            text_color: 0x00FF7F
+            text_font: font_value
+
+        # bar แสดงค่า (0-100)
+        - bar:
+            id: progress_bar
+            align: CENTER
+            y: 10
+            width: 240
+            height: 20
+            min_value: 0
+            max_value: 100
+            value: 0
+            bg_color: 0x1F1F3F
+            bg_opa: COVER
+            radius: 10
+            indicator:
+              bg_color: 0x00FF7F
+              radius: 10
+
+        # ปุ่มกด +10
+        - obj:
+            id: btn_add
+            align: CENTER
+            y: 80
+            width: 200
+            height: 60
+            bg_color: 0x1F3540
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0xFFD27F
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "+10"
+                  text_color: 0xFFD27F
+                  text_font: font_btn
+            on_click:
+              - lambda: |-
+                  id(counter) += 10;
+                  if (id(counter) > 100) id(counter) = 0;
+              - lvgl.label.update:
+                  id: lbl_counter
+                  text: !lambda |-
+                    return std::to_string(id(counter));
+              - lvgl.bar.update:
+                  id: progress_bar
+                  value: !lambda |-
+                    return id(counter);
+
+        # ปุ่ม Reset
+        - obj:
+            id: btn_reset
+            align: CENTER
+            y: 160
+            width: 200
+            height: 50
+            bg_color: 0x3F1F1F
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0xFF6B6B
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Reset"
+                  text_color: 0xFF6B6B
+                  text_font: font_btn
+            on_click:
+              - lambda: |-
+                  id(counter) = 0;
+              - lvgl.label.update:
+                  id: lbl_counter
+                  text: "0"
+              - lvgl.bar.update:
+                  id: progress_bar
+                  value: 0

@@ -1,0 +1,192 @@
+# gestures.yaml — บทที่ 8: Touch Gestures + Swipe Detection
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ตรวจจับ swipe ซ้าย/ขวา เพื่อเปลี่ยนหน้า
+#            เรียนรู้ on_touch / on_release + coordinate delta
+#
+#   uvx esphome compile gestures.yaml
+
+esphome:
+  name: kru32-gestures
+  friendly_name: Kru32 Gestures
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+globals:
+  - id: touch_start_x
+    type: int
+    initial_value: "0"
+  - id: touch_last_x
+    type: int
+    initial_value: "0"
+  - id: current_page
+    type: int
+    initial_value: "0"
+  - id: is_first_touch
+    type: bool
+    initial_value: "true"
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+    on_touch:
+      - lambda: |-
+          if (id(is_first_touch)) {
+            id(touch_start_x) = touch.x;
+            id(is_first_touch) = false;
+          }
+          id(touch_last_x) = touch.x;
+    on_release:
+      - lambda: |-
+          int dx = id(touch_last_x) - id(touch_start_x);
+          if (dx < -50) {
+            id(current_page) = std::min(2, id(current_page) + 1);
+          } else if (dx > 50) {
+            id(current_page) = std::max(0, id(current_page) - 1);
+          }
+          id(is_first_touch) = true;
+      - if:
+          condition:
+            lambda: "return id(current_page) == 0;"
+          then:
+            - lvgl.page.show: page_red
+      - if:
+          condition:
+            lambda: "return id(current_page) == 1;"
+          then:
+            - lvgl.page.show: page_green
+      - if:
+          condition:
+            lambda: "return id(current_page) == 2;"
+          then:
+            - lvgl.page.show: page_blue
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_big
+    size: 48
+  - file: "gfonts://Roboto"
+    id: font_hint
+    size: 18
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: page_red
+      bg_color: 0x1A0505
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: CENTER
+            y: -20
+            text: "Page 1"
+            text_color: 0xFF6B6B
+            text_font: font_big
+        - label:
+            align: CENTER
+            y: 40
+            text: "Swipe left"
+            text_color: 0x888888
+            text_font: font_hint
+
+    - id: page_green
+      bg_color: 0x051A05
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: CENTER
+            y: -20
+            text: "Page 2"
+            text_color: 0x00FF7F
+            text_font: font_big
+        - label:
+            align: CENTER
+            y: 40
+            text: "Swipe left or right"
+            text_color: 0x888888
+            text_font: font_hint
+
+    - id: page_blue
+      bg_color: 0x05051A
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: CENTER
+            y: -20
+            text: "Page 3"
+            text_color: 0x4FB3FF
+            text_font: font_big
+        - label:
+            align: CENTER
+            y: 40
+            text: "Swipe right"
+            text_color: 0x888888
+            text_font: font_hint

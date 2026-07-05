@@ -1,0 +1,305 @@
+# dashboard.yaml — บทที่ 15: Brewing Dashboard (simplified)
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: รวม cards + bars + labels + pages เป็น dashboard เต็มรูปแบบ
+#            จำลอง brewing data (จาก template sensors)
+#            นี่คือ simplified version ของ config จริงที่ esp32-oracle ใช้
+#
+#   uvx esphome compile dashboard.yaml
+
+esphome:
+  name: kru32-dashboard
+  friendly_name: Kru32 Dashboard
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+globals:
+  - id: brew_day
+    type: int
+    initial_value: "5"
+  - id: brew_temp
+    type: float
+    initial_value: "22.5"
+
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          id(brew_temp) += 0.1;
+          if (id(brew_temp) > 26.0) id(brew_temp) = 20.0;
+      - lvgl.label.update:
+          id: lbl_temp_val
+          text: !lambda |-
+            char buf[10];
+            snprintf(buf, sizeof(buf), "%.1f C", id(brew_temp));
+            return std::string(buf);
+      - lvgl.bar.update:
+          id: bar_day
+          value: !lambda "return id(brew_day);"
+      - lvgl.label.update:
+          id: lbl_day_val
+          text: !lambda |-
+            char buf[10];
+            snprintf(buf, sizeof(buf), "Day %d/14", id(brew_day));
+            return std::string(buf);
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_brand
+    size: 22
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 18
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 14
+  - file: "gfonts://Roboto"
+    id: font_value
+    size: 32
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: brew_page
+      bg_color: 0x000000
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        # Header card
+        - obj:
+            x: 8
+            y: 8
+            width: 304
+            height: 60
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Kru32 Brewing"
+                  text_color: 0xFFFFFF
+                  text_font: font_brand
+              - obj:
+                  align: TOP_RIGHT
+                  width: 90
+                  height: 24
+                  bg_color: 0x0A1419
+                  bg_opa: COVER
+                  border_width: 1
+                  border_color: 0x00FF7F
+                  radius: 12
+                  widgets:
+                    - label:
+                        id: lbl_status
+                        align: CENTER
+                        text: "ACTIVE"
+                        text_color: 0x00FF7F
+                        text_font: font_small
+
+        # Day progress card
+        - obj:
+            x: 8
+            y: 76
+            width: 304
+            height: 100
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Fermentation Progress"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  id: lbl_day_val
+                  align: CENTER
+                  y: 5
+                  text: "Day 5/14"
+                  text_color: 0xFFD27F
+                  text_font: font_value
+              - bar:
+                  id: bar_day
+                  align: BOTTOM_MID
+                  width: 270
+                  height: 10
+                  min_value: 0
+                  max_value: 14
+                  value: 5
+                  bg_color: 0x1F1F2F
+                  bg_opa: COVER
+                  radius: 5
+                  indicator:
+                    bg_color: 0xFFD27F
+                    radius: 5
+
+        # Temperature card
+        - obj:
+            x: 8
+            y: 184
+            width: 304
+            height: 90
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Temperature"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  id: lbl_temp_val
+                  align: CENTER
+                  y: 8
+                  text: "22.5 C"
+                  text_color: 0xFF6B6B
+                  text_font: font_value
+
+        # Recipe card
+        - obj:
+            x: 8
+            y: 282
+            width: 148
+            height: 90
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 10
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Batch Size"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  align: CENTER
+                  y: 10
+                  text: "23 L"
+                  text_color: 0x4FB3FF
+                  text_font: font_body
+
+        - obj:
+            x: 164
+            y: 282
+            width: 148
+            height: 90
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 10
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Target ABV"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  align: CENTER
+                  y: 10
+                  text: "5.2%"
+                  text_color: 0x4FB3FF
+                  text_font: font_body
+
+        # Style info
+        - obj:
+            x: 8
+            y: 380
+            width: 304
+            height: 60
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Style: IPA"
+                  text_color: 0xFFFFFF
+                  text_font: font_body
+              - label:
+                  align: BOTTOM_LEFT
+                  text: "Grain: 5.2 kg"
+                  text_color: 0x888888
+                  text_font: font_small

@@ -1,0 +1,10 @@
+# ESPHome build artifacts
+.esphome/
+.pio/
+build/
+
+# Secrets (never commit)
+secrets.yaml
+
+# OS
+.DS_Store

@@ -1,0 +1,190 @@
+# dropdown.yaml — บทที่ 12: LVGL Dropdown + Roller
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ใช้ LVGL dropdown เพื่อเลือก option → เปลี่ยน state
+#            เรียนรู้ dropdown on_change + roller widget
+#
+#   uvx esphome compile dropdown.yaml
+
+esphome:
+  name: kru32-dropdown
+  friendly_name: Kru32 Dropdown
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 20
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 16
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: select_page
+      bg_color: 0x080810
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 20
+            text: "Select Mode"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - label:
+            align: TOP_MID
+            y: 60
+            text: "Board:"
+            text_color: 0x888888
+            text_font: font_small
+
+        - dropdown:
+            id: board_select
+            align: TOP_MID
+            y: 85
+            width: 260
+            options:
+              - "JC3248W535"
+              - "WT32-SC01 Plus"
+              - "Waveshare 7"
+              - "Waveshare 2.8B"
+            selected_index: 0
+            text_font: font_body
+            on_change:
+              - lvgl.label.update:
+                  id: lbl_selected
+                  text: !lambda |-
+                    switch (x) {
+                      case 0: return std::string("QSPI 320x480");
+                      case 1: return std::string("8080 320x480");
+                      case 2: return std::string("RGB 800x480");
+                      case 3: return std::string("RGB 480x640");
+                      default: return std::string("Unknown");
+                    }
+
+        - label:
+            align: CENTER
+            y: -10
+            text: "Brightness:"
+            text_color: 0x888888
+            text_font: font_small
+
+        - roller:
+            id: brightness_roller
+            align: CENTER
+            y: 40
+            width: 200
+            options:
+              - "10%"
+              - "20%"
+              - "30%"
+              - "40%"
+              - "50%"
+              - "60%"
+              - "70%"
+              - "80%"
+              - "90%"
+              - "100%"
+            selected_index: 9
+            visible_row_count: 3
+            text_font: font_body
+            on_change:
+              - light.turn_on:
+                  id: backlight
+                  brightness: !lambda "return (x + 1) * 0.1;"
+
+        - obj:
+            align: CENTER
+            y: 150
+            width: 260
+            height: 60
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x4FB3FF
+            pad_all: 10
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Selected bus:"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  id: lbl_selected
+                  align: BOTTOM_LEFT
+                  text: "QSPI 320x480"
+                  text_color: 0x4FB3FF
+                  text_font: font_body

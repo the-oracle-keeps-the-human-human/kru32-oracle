@@ -1,0 +1,229 @@
+# automation.yaml — บทที่ 14: Complex Automations + State Machine
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: automations หลายขั้น — timer countdown + state transitions
+#            กดปุ่ม Start → countdown → Done → Reset
+#
+#   uvx esphome compile automation.yaml
+
+esphome:
+  name: kru32-automation
+  friendly_name: Kru32 Automation
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+globals:
+  - id: timer_value
+    type: int
+    initial_value: "30"
+  - id: timer_running
+    type: bool
+    initial_value: "false"
+  - id: state
+    type: int
+    initial_value: "0"
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          if (id(timer_running) && id(timer_value) > 0) {
+            id(timer_value) -= 1;
+            if (id(timer_value) == 0) {
+              id(timer_running) = false;
+              id(state) = 2;  // done
+            }
+          }
+      - lvgl.label.update:
+          id: lbl_timer
+          text: !lambda |-
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d", id(timer_value));
+            return std::string(buf);
+      - lvgl.arc.update:
+          id: arc_timer
+          value: !lambda "return id(timer_value);"
+      - lvgl.label.update:
+          id: lbl_state
+          text: !lambda |-
+            switch (id(state)) {
+              case 0: return std::string("Ready");
+              case 1: return std::string("Running...");
+              case 2: return std::string("Done!");
+              default: return std::string("---");
+            }
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 22
+  - file: "gfonts://Roboto"
+    id: font_timer
+    size: 72
+  - file: "gfonts://Roboto"
+    id: font_state
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_btn
+    size: 20
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: timer_page
+      bg_color: 0x080810
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 16
+            text: "Timer Automation"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - arc:
+            id: arc_timer
+            align: CENTER
+            y: -50
+            width: 200
+            height: 200
+            min_value: 0
+            max_value: 30
+            value: 30
+            start_angle: 135
+            end_angle: 45
+            bg_color: 0x1F1F3F
+            indicator:
+              arc_color: 0x00FF7F
+              arc_width: 14
+            arc_width: 14
+
+        - label:
+            id: lbl_timer
+            align: CENTER
+            y: -50
+            text: "30"
+            text_color: 0xFFFFFF
+            text_font: font_timer
+
+        - label:
+            id: lbl_state
+            align: CENTER
+            y: 70
+            text: "Ready"
+            text_color: 0x4FB3FF
+            text_font: font_state
+
+        - obj:
+            align: CENTER
+            y: 130
+            width: 130
+            height: 50
+            bg_color: 0x0A3A1A
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x00FF7F
+            x: -70
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Start"
+                  text_color: 0x00FF7F
+                  text_font: font_btn
+            on_click:
+              - lambda: |-
+                  if (id(state) != 1) {
+                    id(timer_value) = 30;
+                    id(timer_running) = true;
+                    id(state) = 1;
+                  }
+
+        - obj:
+            align: CENTER
+            y: 130
+            width: 130
+            height: 50
+            bg_color: 0x3A0A0A
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0xFF6B6B
+            x: 70
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Reset"
+                  text_color: 0xFF6B6B
+                  text_font: font_btn
+            on_click:
+              - lambda: |-
+                  id(timer_value) = 30;
+                  id(timer_running) = false;
+                  id(state) = 0;
