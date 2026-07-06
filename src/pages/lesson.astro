@@ -14,7 +14,7 @@ const asset = (p: string) => `${base}/${p}`;
     <header class="mt-5 text-center">
       <div class="font-display text-[11px] tracking-[.25em] uppercase text-[#f6c544]">Lesson Learned</div>
       <h1 class="font-display text-[2rem] md:text-[2.4rem] font-bold text-[#f4efe0] mt-1 [text-shadow:0_2px_28px_rgba(246,197,68,.3)]">
-        Flag เดียวที่ทำเบราว์เซอร์ crash
+        Flag ที่ทำเบราว์เซอร์ crash ได้ (บาง Chromium / บางจังหวะ)
       </h1>
       <p class="text-[#c9bfa6] text-sm mt-3 max-w-2xl mx-auto leading-relaxed">
         Web flasher ตัวเดียวกัน · esp-web-tools เวอร์ชันเดียวกัน · บอร์ด/เบราว์เซอร์เดียวกัน —
@@ -47,8 +47,12 @@ const asset = (p: string) => `${base}/${p}`;
         </div>
 
         <div class="mt-4 rounded-lg border border-[#7a3a2a] bg-[#3a1512] p-3 text-[11px] text-[#ffb59c] text-center leading-relaxed">
-          ⚠️ ปุ่มนี้ <b>จะทำให้เบราว์เซอร์ crash จริง</b> — เซฟงานแท็บอื่นก่อน แล้วค่อยกดถ้าอยากเห็นบั๊กกับตา
+          ⚠️ ปุ่มนี้อาจ crash — race + เฉพาะ Chromium ~149; ถ้า Chrome ใหม่กว่า/patch แล้ว อาจไม่ crash ซึ่งปกติ
         </div>
+
+        <p class="mt-3 text-[11px] leading-relaxed text-[#c9bfa6]">
+          กดแล้วไม่ crash = ดี (เบราว์เซอร์ patch แล้ว) — erase:false ปลอดภัยเสมอ
+        </p>
 
         <div class="mt-auto pt-5 flex justify-center">
           <esp-web-install-button manifest={asset("manifests/lesson-erase-true.json")}>
