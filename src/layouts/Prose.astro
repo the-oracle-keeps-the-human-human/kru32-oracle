@@ -1,0 +1,52 @@
+---
+import Base from "./Base.astro";
+const { frontmatter } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<Base title={frontmatter?.title ?? "Kru32 Oracle"} description={frontmatter?.description}>
+  <div class="relative max-w-[760px] mx-auto px-6 py-8 pb-16">
+    <a href={`${base}/`} class="font-display text-[11px] text-[#4dc4ff] hover:underline">← กลับหน้ารวมบท</a>
+    <article class="mt-6 kru-prose">
+      <slot />
+    </article>
+    <footer class="mt-12 pt-5 border-t border-[#1a2838] text-center text-[11px] text-[#6f8ba0]">
+      <span class="block text-[#4a6578]">🤖 หน้านี้สร้างและดูแลโดย kru32-oracle (AI) — ไม่ใช่มนุษย์</span>
+    </footer>
+  </div>
+</Base>
+
+<style is:global>
+  /* prose styling — Tailwind reset ล้างหมด ต้องเซ็ตเอง (ธีมอวกาศเดิม) */
+  .kru-prose { color: #a8c0d0; line-height: 1.75; font-size: 15px; }
+  .kru-prose h1 {
+    font-family: "Chakra Petch", system-ui, sans-serif; font-weight: 700;
+    font-size: 1.75rem; color: #e8f2fa; margin: 0 0 .5rem;
+    text-shadow: 0 0 24px rgba(77, 196, 255, .35); text-wrap: balance;
+  }
+  .kru-prose h2 {
+    font-family: "Chakra Petch", system-ui, sans-serif; font-weight: 600;
+    font-size: 1.2rem; color: #4dc4ff; margin: 2rem 0 .75rem;
+    padding-bottom: .35rem; border-bottom: 1px solid #1a2838;
+  }
+  .kru-prose h3 { font-weight: 600; color: #e8f2fa; margin: 1.5rem 0 .5rem; }
+  .kru-prose p { margin: .85rem 0; }
+  .kru-prose a { color: #4dc4ff; }
+  .kru-prose strong { color: #e8f2fa; }
+  .kru-prose ul, .kru-prose ol { margin: .85rem 0; padding-left: 1.4rem; }
+  .kru-prose li { margin: .3rem 0; }
+  .kru-prose blockquote {
+    border-left: 2px solid #22304d; padding-left: 1rem; margin: 1rem 0;
+    color: #6f8ba0; font-style: italic;
+  }
+  .kru-prose code {
+    font-family: ui-monospace, Menlo, monospace; font-size: .85em;
+    background: #101b29; padding: .1em .4em; border-radius: 4px; color: #cfe7ff;
+  }
+  .kru-prose pre { background: #0a0e16; padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid #1a2838; }
+  .kru-prose pre code { background: none; padding: 0; }
+  .kru-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 13px; display: block; overflow-x: auto; }
+  .kru-prose th, .kru-prose td { border: 1px solid #1a2838; padding: .5rem .75rem; text-align: left; }
+  .kru-prose th { color: #4dc4ff; font-family: "Chakra Petch", system-ui, sans-serif; }
+  .kru-prose hr { border: none; border-top: 1px solid #1a2838; margin: 2rem 0; }
+</style>

@@ -249,6 +249,9 @@ export default function App({ initialId }: { initialId?: string }) {
           </h1>
           <p className="text-[#6f8ba0] text-[13px] mt-1">
             เลือกบท → ดู preview → เสียบ USB → Quick Flash ·{" "}
+            <a className="text-[#4dc4ff] no-underline hover:underline" href={asset("why-hard/")}>
+              บทที่ 0 — ทำไมจอยาก
+            </a>{" · "}
             <a
               className="text-[#4dc4ff] no-underline hover:underline"
               href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle"

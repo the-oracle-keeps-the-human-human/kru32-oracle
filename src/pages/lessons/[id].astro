@@ -1,0 +1,94 @@
+---
+import { Code } from "astro:components";
+import Base from "../../layouts/Base.astro";
+import CopyButton from "../../components/CopyButton.tsx";
+import { LESSONS } from "../../data/lessons";
+
+// อ่าน YAML ต้นฉบับทุกบทตอน build (Node) — glob แค่ระดับเดียว ไม่โดน .esphome ที่ลึกกว่า
+const yamlFiles = import.meta.glob("/lessons/*/*.yaml", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+
+// path /lessons/05-time/time-display.yaml → dir "05-time" → id = ส่วนหลัง "-" ตัวแรก
+function idFromPath(p: string): string {
+  const dir = p.split("/")[2] ?? "";
+  return dir.replace(/^\d+-/, "");
+}
+const yamlById: Record<string, { source: string; file: string }> = {};
+for (const [p, src] of Object.entries(yamlFiles)) {
+  yamlById[idFromPath(p)] = { source: src, file: p.split("/").pop() ?? "" };
+}
+
+export function getStaticPaths() {
+  return LESSONS.map((l) => ({ params: { id: l.id }, props: { lesson: l } }));
+}
+
+const { lesson } = Astro.props;
+const yaml = yamlById[lesson.id] ?? { source: "# ไม่พบไฟล์ YAML", file: "" };
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const asset = (p: string) => `${base}/${p}`;
+const lineCount = yaml.source.split("\n").length;
+---
+
+<Base title={`บท ${lesson.num} — ${lesson.name} · Kru32 Oracle`} description={lesson.desc}>
+  <div class="relative max-w-[1000px] mx-auto px-6 py-8 pb-16">
+    <a href={asset("")} class="font-display text-[11px] text-[#4dc4ff] hover:underline">← กลับหน้ารวมบท</a>
+
+    <header class="mt-4 mb-6 flex items-start gap-4 flex-wrap">
+      <img
+        src={asset(`previews/${lesson.id}.png`)}
+        alt={`หน้าจอบท ${lesson.num} ${lesson.name}`}
+        width={80}
+        height={120}
+        class="w-20 h-[120px] shrink-0 rounded-lg border border-[#22304d] bg-black"
+      />
+      <div class="min-w-0">
+        <div class="font-display text-[10px] tracking-[.22em] uppercase text-[#4dc4ff]">
+          บทที่ {lesson.num} · {lesson.level}
+        </div>
+        <h1 class="font-display text-2xl font-bold text-[#e8f2fa] mt-1 [text-shadow:0_0_24px_rgba(77,196,255,.35)]">
+          {lesson.name}
+        </h1>
+        <p class="text-[#a8c0d0] text-sm mt-1">{lesson.desc}</p>
+        <div class="font-mono text-[11px] text-[#6f8ba0] mt-2">
+          {yaml.file} · {lineCount} บรรทัด · firmware {lesson.size}
+        </div>
+      </div>
+    </header>
+
+    <!-- Flash — esp-web-install-button นิยามโดยสคริปต์ esp-web-tools ใน head (client-side) -->
+    <div class="mb-6">
+      <esp-web-install-button manifest={asset(`manifests/${lesson.id}.json`)}>
+        <button
+          slot="activate"
+          class="font-display font-bold text-sm tracking-wider px-8 py-3 rounded-[10px] text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] cursor-pointer border-0 hover:-translate-y-px transition-transform"
+        >
+          ⚡ Quick Flash บทนี้
+        </button>
+        <span slot="unsupported" class="text-[11px] text-[#ff6050]">
+          เบราว์เซอร์นี้ flash ไม่ได้ — ใช้ Chrome/Edge บนคอมพิวเตอร์
+        </span>
+      </esp-web-install-button>
+    </div>
+
+    <div class="flex items-center gap-3 mb-2">
+      <span class="font-display text-[11px] tracking-[.15em] uppercase text-[#6f8ba0]">ESPHome YAML</span>
+      <span aria-hidden="true" class="flex-1 h-px bg-[#1a2838]"></span>
+      <CopyButton client:visible text={yaml.source} />
+    </div>
+
+    <div class="rounded-lg border border-[#1a2838] overflow-x-auto text-[12.5px] [&_pre]:!bg-[#0a0e16] [&_pre]:p-4 [&_pre]:rounded-lg">
+      <Code code={yaml.source} lang="yaml" theme="github-dark" />
+    </div>
+
+    <p class="mt-5 text-[11px] text-[#6f8ba0] leading-relaxed">
+      แก้ <span class="font-mono text-[#a8c0d0]">wifi: ssid / password</span> เป็นของคุณก่อน flash ·
+      ค่า pin ทั้งหมดพิสูจน์บน JC3248W535 จริงแล้ว
+    </p>
+
+    <footer class="mt-12 pt-5 border-t border-[#1a2838] text-center text-[11px] text-[#6f8ba0]">
+      <a class="text-[#4dc4ff]" href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle" target="_blank" rel="noopener noreferrer">
+        the-oracle-keeps-the-human-human/kru32-oracle
+      </a>
+      <span class="block mt-2 text-[#4a6578]">🤖 หน้านี้สร้างและดูแลโดย kru32-oracle (AI) — ไม่ใช่มนุษย์</span>
+    </footer>
+  </div>
+</Base>
