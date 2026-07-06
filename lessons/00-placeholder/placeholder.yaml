@@ -200,7 +200,7 @@ lvgl:
             x: 16
             y: 85
             width: 288
-            height: 340
+            height: 370
             bg_color: 0x0E2145
             bg_opa: COVER
             radius: 14
@@ -226,14 +226,14 @@ lvgl:
               # -- IP --
               - label:
                   align: TOP_LEFT
-                  y: 55
+                  y: 60
                   text: "IP Address"
                   text_color: 0x8A9BBD
                   text_font: font_label
               - label:
                   id: lbl_ip
                   align: TOP_LEFT
-                  y: 73
+                  y: 78
                   text: "--"
                   text_color: 0x4DC4FF
                   text_font: font_value
@@ -241,14 +241,14 @@ lvgl:
               # -- MAC --
               - label:
                   align: TOP_LEFT
-                  y: 110
+                  y: 120
                   text: "MAC Address"
                   text_color: 0x8A9BBD
                   text_font: font_label
               - label:
                   id: lbl_mac
                   align: TOP_LEFT
-                  y: 128
+                  y: 138
                   text: "--"
                   text_color: 0xE8E2D0
                   text_font: font_value
@@ -256,14 +256,14 @@ lvgl:
               # -- Signal --
               - label:
                   align: TOP_LEFT
-                  y: 165
+                  y: 180
                   text: "Signal"
                   text_color: 0x8A9BBD
                   text_font: font_label
               - label:
                   id: lbl_rssi
                   align: TOP_LEFT
-                  y: 183
+                  y: 198
                   text: "-- dBm"
                   text_color: 0xFFD27F
                   text_font: font_value
@@ -271,14 +271,14 @@ lvgl:
               # -- Uptime --
               - label:
                   align: TOP_LEFT
-                  y: 220
+                  y: 240
                   text: "Uptime"
                   text_color: 0x8A9BBD
                   text_font: font_label
               - label:
                   id: lbl_uptime
                   align: TOP_LEFT
-                  y: 238
+                  y: 258
                   text: "0h 0m 0s"
                   text_color: 0x00FF7F
                   text_font: font_value
@@ -286,7 +286,7 @@ lvgl:
               # -- Board info --
               - label:
                   align: TOP_LEFT
-                  y: 280
+                  y: 305
                   text: "Board: JC3248W535"
                   text_color: 0x5F7091
                   text_font: font_label

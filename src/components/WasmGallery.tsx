@@ -229,34 +229,33 @@ export default function WasmGallery({ apps = WASM_APPS as WasmApp[] }: { apps?: 
         <h2 className="font-display text-[13px] font-semibold tracking-wide pb-2 mb-4 border-b border-[#2a3a5c] text-[#4dc4ff]">
           ทดสอบบอร์ด — First Flash
         </h2>
-        <div className="flex flex-col sm:flex-row items-start gap-5 max-w-[600px]">
-          {/* Screen preview — จำลองหน้าจอบอร์ด 320×480 ย่อส่วน */}
-          <div className="shrink-0 rounded-[14px] p-[3px] bg-gradient-to-b from-[#8a6a2e] to-[#3a2c14] shadow-[0_10px_30px_-14px_rgba(0,0,0,.8)]">
-            <div className="w-[140px] h-[210px] rounded-[10px] bg-[#0B1B39] overflow-hidden p-3 flex flex-col" style={{fontFamily:"'Roboto',sans-serif"}}>
-              <div className="text-[9px] font-bold text-[#F6C544] text-center">Kru32 Oracle</div>
-              <div className="text-[7px] text-[#00FF7F] text-center mt-0.5">Connected OK</div>
-              <div className="mt-2 rounded-[6px] bg-[#0E2145] border border-[#22304D] p-2 flex-1 flex flex-col gap-1.5">
-                <div><span className="text-[6px] text-[#8A9BBD]">WiFi SSID</span><br/><span className="text-[8px] text-[#F6C544] font-medium">kru32-dev</span></div>
-                <div><span className="text-[6px] text-[#8A9BBD]">IP Address</span><br/><span className="text-[8px] text-[#4DC4FF] font-medium">192.168.1.x</span></div>
-                <div><span className="text-[6px] text-[#8A9BBD]">MAC Address</span><br/><span className="text-[8px] text-[#E8E2D0] font-medium">AA:BB:CC:DD:EE</span></div>
-                <div><span className="text-[6px] text-[#8A9BBD]">Signal</span><br/><span className="text-[8px] text-[#FFD27F] font-medium">-45 dBm</span></div>
-                <div><span className="text-[6px] text-[#8A9BBD]">Uptime</span><br/><span className="text-[8px] text-[#00FF7F] font-medium">0h 2m 30s</span></div>
+        <div className="flex flex-col items-center gap-5 max-w-[480px] mx-auto">
+          {/* Screen preview — จำลองหน้าจอบอร์ด 320×480 (ย่อ ~0.55x) */}
+          <div className="rounded-[16px] p-[3px] bg-gradient-to-b from-[#8a6a2e] to-[#3a2c14] shadow-[0_14px_36px_-14px_rgba(0,0,0,.8),0_0_50px_-16px_rgba(246,197,68,.25)]">
+            <div className="w-[176px] h-[264px] rounded-[12px] bg-[#0B1B39] overflow-hidden p-3 flex flex-col" style={{fontFamily:"'Roboto',sans-serif"}}>
+              <div className="text-[11px] font-bold text-[#F6C544] text-center">Kru32 Oracle</div>
+              <div className="text-[8px] text-[#00FF7F] text-center mt-0.5">Connected OK</div>
+              <div className="mt-2 rounded-[8px] bg-[#0E2145] border border-[#22304D] p-2.5 flex-1 flex flex-col justify-between">
+                <div><span className="text-[7px] text-[#8A9BBD]">WiFi SSID</span><br/><span className="text-[9px] text-[#F6C544] font-medium">kru32-dev</span></div>
+                <div><span className="text-[7px] text-[#8A9BBD]">IP Address</span><br/><span className="text-[9px] text-[#4DC4FF] font-medium">192.168.1.x</span></div>
+                <div><span className="text-[7px] text-[#8A9BBD]">MAC</span><br/><span className="text-[9px] text-[#E8E2D0] font-medium">AA:BB:CC:DD:EE</span></div>
+                <div><span className="text-[7px] text-[#8A9BBD]">Signal</span><br/><span className="text-[9px] text-[#FFD27F] font-medium">-45 dBm</span></div>
+                <div><span className="text-[7px] text-[#8A9BBD]">Uptime</span><br/><span className="text-[9px] text-[#00FF7F] font-medium">0h 2m 30s</span></div>
               </div>
-              <div className="text-[5px] text-[#3A4A6C] text-center mt-1">JC3248W535</div>
+              <div className="text-[6px] text-[#3A4A6C] text-center mt-1.5">Board: JC3248W535</div>
             </div>
           </div>
 
-          {/* Info + flash button */}
-          <div className="flex-1 min-w-0 pt-1">
-            <div className="font-display text-[15px] font-bold text-[#f4efe0]">WiFi Placeholder</div>
-            <p className="text-[12px] text-[#c9bfa6] mt-1 leading-relaxed">
-              Flash แล้วจอโชว์ WiFi status, IP, MAC, signal, uptime<br/>
-              ยืนยันว่าบอร์ดทำงาน + ต่อ WiFi ได้
+          {/* Info + flash button — centered below the screen */}
+          <div className="text-center">
+            <div className="font-display text-[16px] font-bold text-[#f4efe0]">WiFi Placeholder</div>
+            <p className="text-[12px] text-[#c9bfa6] mt-1.5 leading-relaxed max-w-[360px] mx-auto">
+              Flash แล้วจอโชว์ WiFi status, IP, MAC, signal, uptime — ยืนยันว่าบอร์ดทำงาน + ต่อ WiFi ได้
             </p>
             <div className="mt-3">
               {hasSerial ? (
                 <esp-web-install-button manifest={asset("manifests/placeholder.json")}>
-                  <button slot="activate" className="px-6 py-2.5 rounded-[8px] font-display font-bold text-[12px] text-[#1a1204] bg-gradient-to-br from-[#4dc4ff] to-[#2a88cc] hover:-translate-y-px transition-transform cursor-pointer border-0">
+                  <button slot="activate" className="px-7 py-2.5 rounded-[10px] font-display font-bold text-[13px] text-[#1a1204] bg-gradient-to-br from-[#4dc4ff] to-[#2a88cc] hover:-translate-y-px transition-transform cursor-pointer border-0">
                     ⚡ Flash ทดสอบ
                   </button>
                 </esp-web-install-button>
