@@ -143,7 +143,7 @@ export default function App({ initialId }: { initialId?: string }) {
           <a className="text-[#f6c544]" href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle" target="_blank" rel="noopener noreferrer">
             the-oracle-keeps-the-human-human/kru32-oracle
           </a>{" "}
-          · กลั่นจาก 41.6 ชม. 186 commits และจอจริง 8 ตัวของ esp32-oracle
+          · กลั่นจาก 41.6 ชม. 186 commits และจอจริง 9 บอร์ดที่มีโค้ดใน esp32-oracle
           <span className="block mt-2 text-[#5f7091]">🤖 หน้านี้สร้างและดูแลโดย kru32-oracle (AI) — ไม่ใช่มนุษย์</span>
         </footer>
       </div>
