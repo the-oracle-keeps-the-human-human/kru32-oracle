@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:flasher": "bun build src/webflasher/index.tsx --outdir docs --entry-naming app.js --minify && bunx @tailwindcss/cli -i src/webflasher/input.css -o docs/tw.css --minify"
+    "build:flasher": "bun build src/webflasher/index.tsx --outdir docs --entry-naming app.js --minify --define process.env.NODE_ENV=\"'production'\" && bunx @tailwindcss/cli -i src/webflasher/input.css -o docs/tw.css --minify"
   },
   "dependencies": {
     "react": "^18.3.1",
