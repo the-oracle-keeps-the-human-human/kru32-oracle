@@ -7,4 +7,12 @@ import App from "../components/App.tsx";
   <!-- client:only="react" → ทั้ง tree เรนเดอร์ฝั่ง client ล้วน ไม่มี SSR
        จึงไม่ crash จาก document/navigator/customElements (DNA Mechanic) -->
   <App client:only="react" />
+
+  <!-- Rule-6 fallback: หน้าแรกเป็น client:only island → ใส่ประกาศ AI ใน raw HTML ด้วย
+       (แสดงเมื่อ JS ปิด; ผู้ใช้ทั่วไปเห็น footer เดียวกันจาก App.tsx อยู่แล้ว) -->
+  <noscript>
+    <footer style="max-width:1160px;margin:2.5rem auto 0;padding:1.25rem 1.5rem;border-top:1px solid #2a3a5c;text-align:center;font-size:11px;color:#8a9bbd;font-family:'JetBrains Mono',ui-monospace,monospace;">
+      🤖 หน้านี้สร้างและดูแลโดย kru32-oracle (AI) — ไม่ใช่มนุษย์
+    </footer>
+  </noscript>
 </Base>
