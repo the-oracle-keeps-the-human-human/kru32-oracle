@@ -1,1 +1,23 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "./";
+
+body {
+  background: #060a0f;
+  color: #a8c0d0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+@keyframes kru-spin {
+  to { transform: rotate(360deg); }
+}
+.kru-spin { animation: kru-spin 1.5s linear infinite; }
+
+@keyframes kru-bounce {
+  0%, 100% { transform: translateY(-70px); }
+  50% { transform: translateY(0); }
+}
+.kru-bounce { animation: kru-bounce .8s ease-in infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .kru-spin, .kru-bounce { animation: none; }
+}

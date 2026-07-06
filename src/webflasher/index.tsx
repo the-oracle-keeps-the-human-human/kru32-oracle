@@ -27,7 +27,7 @@ function LessonItem({ lesson, selected, onSelect }: {
         "flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer border transition-all",
         "bg-[#0f1822] hover:bg-[#0a1018] hover:border-[#4dc4ff4d]",
         selected
-          ? "border-[#4dc4ff] bg-[#4dc4ff0f] shadow-[inset_3px_0_0_#4dc4ff]"
+          ? "border-[#4dc4ff] bg-[#4dc4ff14]"
           : lesson.num === "01"
             ? "border-[#4ae08a]"
             : "border-[#1a2838]",
@@ -35,13 +35,13 @@ function LessonItem({ lesson, selected, onSelect }: {
     >
       <span className={[
         "font-mono font-bold text-[11px] w-6 shrink-0",
-        selected ? "text-[#4dc4ff]" : lesson.num === "01" ? "text-[#4ae08a]" : "text-[#4a6578]",
+        selected ? "text-[#4dc4ff]" : lesson.num === "01" ? "text-[#4ae08a]" : "text-[#6f8ba0]",
       ].join(" ")}>{lesson.num}</span>
       <div className="min-w-0">
         <div className="text-[13px] font-medium text-[#e8f2fa]">{lesson.name}</div>
-        <div className="text-[11px] text-[#4a6578]">{lesson.desc}</div>
+        <div className="text-[11px] text-[#6f8ba0]">{lesson.desc}</div>
       </div>
-      <span className="font-mono text-[10px] text-[#4a6578] ml-auto shrink-0">{lesson.size}</span>
+      <span className="font-mono text-[10px] text-[#6f8ba0] ml-auto shrink-0">{lesson.size}</span>
     </div>
   );
 }
@@ -62,12 +62,12 @@ function DevicePreview({ lesson }: { lesson: Lesson | null }) {
               dangerouslySetInnerHTML={{ __html: lesson.preview }}
             />
           ) : (
-            <div className="text-[#4a6578] text-[10px] text-center font-mono">
+            <div className="text-[#6f8ba0] text-[10px] text-center font-mono">
               เลือกบทเรียน<br />เพื่อดู preview
             </div>
           )}
         </div>
-        <div className="text-center mt-1.5 font-mono text-[8px] tracking-[.15em] uppercase text-[#8a8a9366]">
+        <div className="text-center mt-1.5 font-mono text-[8px] tracking-[.15em] uppercase text-[#7e8794]">
           Guition JC3248W535 · AXS15231 QSPI
         </div>
       </div>
@@ -77,18 +77,20 @@ function DevicePreview({ lesson }: { lesson: Lesson | null }) {
 
 function FlashDock({ lesson }: { lesson: Lesson | null }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 mt-4">
-      <div className="font-semibold text-[#4dc4ff] text-sm">
-        {lesson ? `${lesson.num} — ${lesson.name}` : "ยังไม่ได้เลือกบท"}
-      </div>
-      <div className="font-mono text-[10px] text-[#4a6578]">
-        {lesson ? `${lesson.size} · JC3248W535` : "JC3248W535 · 320×480"}
+    <div className="flex flex-col items-center mt-4">
+      <div className="text-center">
+        <div className="font-semibold text-[#4dc4ff] text-sm">
+          {lesson ? `${lesson.num} — ${lesson.name}` : "ยังไม่ได้เลือกบท"}
+        </div>
+        <div className="font-mono text-[10px] text-[#6f8ba0] mt-0.5">
+          {lesson ? `${lesson.size} · JC3248W535` : "JC3248W535 · 320×480"}
+        </div>
       </div>
       {hasSerial && lesson ? (
         <esp-web-install-button manifest={`manifests/${lesson.id}.json`}>
           <button
             slot="activate"
-            className="px-9 py-2.5 rounded-[10px] font-bold text-sm tracking-wide text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] hover:-translate-y-px hover:shadow-[0_6px_20px_-4px_rgba(77,196,255,.35)] transition-all cursor-pointer border-0"
+            className="mt-3 px-9 py-3 rounded-[10px] font-bold text-sm tracking-wide text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] hover:-translate-y-px hover:shadow-[0_6px_20px_-4px_rgba(77,196,255,.35)] transition-all cursor-pointer border-0"
           >
             ⚡ Quick Flash
           </button>
@@ -96,17 +98,17 @@ function FlashDock({ lesson }: { lesson: Lesson | null }) {
       ) : (
         <button
           disabled
-          className="px-9 py-2.5 rounded-[10px] font-bold text-sm text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] opacity-30 cursor-not-allowed border-0"
+          className="mt-3 px-9 py-3 rounded-[10px] font-bold text-sm text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] opacity-30 cursor-not-allowed border-0"
         >
           ⚡ Quick Flash
         </button>
       )}
       {!hasSerial && (
-        <div className="text-[11px] text-[#ff6050] text-center">
+        <div className="mt-2 text-[11px] text-[#ff6050] text-center">
           เบราว์เซอร์นี้ไม่รองรับ Web Serial — ใช้ Chrome/Edge บนคอมพิวเตอร์
         </div>
       )}
-      <div className="text-[10px] text-[#4a6578] text-center leading-relaxed">
+      <div className="mt-3 text-[10px] text-[#6f8ba0] text-center leading-relaxed">
         ไฟล์เป็น .factory.bin (รวม bootloader + partition) · เสียบ USB-C พอร์ต native<br />
         ถ้าไม่เจอบอร์ด: กด BOOT ค้าง แตะ RESET · ใช้เวลา ~30 วินาที
       </div>
@@ -124,10 +126,10 @@ function Specs() {
     ["USB", "303A:1001"],
   ];
   return (
-    <dl className="mt-4 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] px-3 py-2.5 bg-[#0f1822] rounded-lg">
+    <dl className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px] px-3.5 py-3 bg-[#0f1822] rounded-lg">
       {rows.map(([k, v]) => (
         <React.Fragment key={k}>
-          <dt className="text-[#4a6578]">{k}</dt>
+          <dt className="text-[#6f8ba0]">{k}</dt>
           <dd className="text-[#a8c0d0] font-medium">{v}</dd>
         </React.Fragment>
       ))}
@@ -145,7 +147,7 @@ function App() {
           ESP32 × Display — 16 Lessons
         </div>
         <h1 className="text-2xl font-bold text-[#e8f2fa]">Kru32 Oracle Web Flasher</h1>
-        <p className="text-[#4a6578] text-[13px] mt-1">
+        <p className="text-[#6f8ba0] text-[13px] mt-1">
           เลือกบท → ดู preview → เสียบ USB → Quick Flash ·{" "}
           <a
             className="text-[#4dc4ff] no-underline hover:underline"
@@ -157,18 +159,18 @@ function App() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] gap-6 items-start">
-        <div>
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] gap-8 md:gap-12 items-start">
+        <div className="flex flex-col gap-7">
           {LEVELS.map((lv) => {
             const group = LESSONS.filter((l) => l.level === lv.key)
               .sort((a, b) => a.num.localeCompare(b.num));
             if (!group.length) return null;
             return (
               <div key={lv.key}>
-                <div className={`font-mono font-semibold text-[9.5px] tracking-[.12em] uppercase py-1.5 mt-3 border-b ${lv.color}`}>
+                <div className={`font-mono font-semibold text-[9.5px] tracking-[.12em] uppercase pb-1.5 border-b ${lv.color}`}>
                   {lv.label}
                 </div>
-                <div className="flex flex-col gap-1.5 mt-1.5">
+                <div className="flex flex-col gap-1.5 mt-2">
                   {group.map((l) => (
                     <LessonItem key={l.id} lesson={l} selected={selected?.id === l.id} onSelect={setSelected} />
                   ))}
@@ -178,14 +180,16 @@ function App() {
           })}
         </div>
 
-        <div className="md:sticky md:top-4 order-first md:order-none">
-          <DevicePreview lesson={selected} />
-          <FlashDock lesson={selected} />
+        <div className="md:sticky md:top-6 order-first md:order-none flex flex-col gap-8">
+          <div>
+            <DevicePreview lesson={selected} />
+            <FlashDock lesson={selected} />
+          </div>
           <Specs />
         </div>
       </div>
 
-      <footer className="mt-10 pt-4 border-t border-[#1a2838] text-center text-[11px] text-[#4a6578]">
+      <footer className="mt-14 pt-5 border-t border-[#1a2838] text-center text-[11px] text-[#6f8ba0]">
         kru32-oracle ·{" "}
         <a
           className="text-[#4dc4ff]"
