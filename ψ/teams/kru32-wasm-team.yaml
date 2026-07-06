@@ -1,0 +1,136 @@
+# kru32-wasm-team — 5 codex coders: WASM-apps gallery + JSON-driven tabs restructure
+# Spawned 2026-07-06 by kru32-oracle (lead). Pattern from fleetpad-oracle (maw-fleetpad), battle-tested.
+# Stack: Astro 7 + React island (client:only) + Tailwind v4. Build gate = `astro build` green.
+# Trunk = main (coders PR/merge back to main, lead-gated, serialized).
+#
+# ⚠️ HOT FILES — lead-owned, coders NEVER edit (route changes THROUGH THE LEAD, like fleetpad's pbxproj):
+#     src/components/App.tsx · src/data/types.ts · src/pages/index.astro
+# ⚠️ Session = 81-kru32 but repo basename = kru32-oracle — they DIFFER (fleetpad gotcha #1).
+#     Teardown kills by repo basename; see Makefile. Lead window = kru32.
+# Report to lead:  maw hey 81-kru32:kru32   (ACK → blocked → done)
+
+name: kru32-wasm-team
+project: the-oracle-keeps-the-human-human/kru32-oracle
+session: 81-kru32
+
+goal: |
+  Restructure the kru32 flasher site into JSON-driven TABS:
+    Tab 1 = "WASM Apps" — gallery of ESP32 WASM desk-pet apps from workshop-04-esp32-wasm
+            submissions. Reality: only 02-Nova is fully flashable today; the rest are
+            characters/source-only, so the gallery must handle flashable + gallery-only cards.
+    Tab 2 = "Basic" — the current lesson grid (moved out of App.tsx into its own component).
+    Top bar = WiFi config (keep the current /wifi Improv-Serial flow).
+  Data-driven: WASM_APPS: WasmApp[] in src/data/apps.ts (+ public/wasm-apps/<id>/ assets) and the
+  existing Lesson[] in src/data/lessons.ts drive the two galleries. Same Van Gogh painterly
+  grid-gallery + lightbox aesthetic as today. Keep new_install_prompt_erase:false on EVERY manifest.
+  Lead defines the TS contract (src/data/types.ts: WasmApp) + the App.tsx tab shell FIRST; coders
+  build self-contained NEW components/data against that contract; lead wires them in + deploys.
+
+defaults: {}
+
+engines:
+  # accounts 1/3/4/5/6 (all authed). Skip acct 2 (fleetpad note: AGENTS.md/.omx incomplete).
+  omx-1: "OMX_AUTO_UPDATE=0 CODEX_HOME=/Users/nat/.codex-team/1 omx --yolo --direct"
+  omx-3: "OMX_AUTO_UPDATE=0 CODEX_HOME=/Users/nat/.codex-team/3 omx --yolo --direct"
+  omx-4: "OMX_AUTO_UPDATE=0 CODEX_HOME=/Users/nat/.codex-team/4 omx --yolo --direct"
+  omx-5: "OMX_AUTO_UPDATE=0 CODEX_HOME=/Users/nat/.codex-team/5 omx --yolo --direct"
+  omx-6: "OMX_AUTO_UPDATE=0 CODEX_HOME=/Users/nat/.codex-team/6 omx --yolo --direct"
+
+members:
+  - role: lead
+    name: kru32
+    engine: claude
+    prompt: "Lead (kru32-oracle). Define src/data/types.ts (WasmApp) + App.tsx tab shell + index.astro FIRST, then dispatch. Review, serialize merges to main, integrate the NEW components, deploy + live-verify. Own the hot files; coders deliver NEW files only. Watch base-path (/kru32-oracle) asset URLs."
+
+  - role: petpacks
+    name: kru32-wasm-petpacks
+    engine: omx-1
+    worktree: agents/kru32-wasm-petpacks
+    branch: agents/kru32-wasm-petpacks
+    prompt: |
+      Coder kru32-wasm-petpacks — TASK #1 (data pipeline; most independent).
+      Source (READ ONLY, separate repo — never edit it):
+        /opt/Code/github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/submissions/
+      Reference example = 02-Nova/ (nova.json + manifest-nova.json + characters/ + preview.png).
+      Schema hint from nova.json: { id, name, kind, tag, manifest, blurb, preview, submission }.
+      Do:
+        1. Inventory every submissions/<dir>/ (SKIP _TEMPLATE). Detect what each HAS: characters/ (gifs),
+           manifest-*.json (esp-web-tools, must be erase:false), preview.png, storage .bin.
+        2. Produce src/data/apps.ts exporting `WASM_APPS: WasmApp[]` (import { WasmApp } from "./types" —
+           the LEAD owns types.ts; if it hasn't landed, ping lead and stub the type LOCALLY, do NOT create
+           or edit types.ts yourself). Each entry: id, name, blurb, tag, preview (path under BASE_URL),
+           submissionUrl; add flashable:true + manifest path ONLY when a real manifest+bins exist (today
+           only Nova). gallery-only apps → flashable:false.
+        3. Copy assets into public/wasm-apps/<id>/ (preview image + characters + manifest + bins for
+           flashable apps). Ensure manifest parts paths still resolve under BASE_URL.
+      Scope: NEW files ONLY — src/data/apps.ts + public/wasm-apps/**. NEVER touch App.tsx / types.ts /
+      index.astro / other worktrees. Build gate: `astro build` green. Own branch+worktree (off main).
+      PR/merge → main (lead-gated). Report ACK→blocked→done: maw hey 81-kru32:kru32.
+
+  - role: gallery
+    name: kru32-wasm-gallery
+    engine: omx-3
+    worktree: agents/kru32-wasm-gallery
+    branch: agents/kru32-wasm-gallery
+    prompt: |
+      Coder kru32-wasm-gallery — TASK #2: Tab 1 component src/components/WasmGallery.tsx.
+      Render WASM_APPS: WasmApp[] (from src/data/apps.ts; type from src/data/types.ts — both lead/petpacks
+      provided; stub a local type if not landed, do NOT edit types.ts). Match the SAME Van Gogh painterly
+      grid-gallery + lightbox look as the lesson grid in src/components/App.tsx (read it as STYLE REFERENCE
+      only — copy the GalleryCard/Lightbox aesthetic; do NOT edit App.tsx). Card = preview gif + name +
+      blurb + tag. Lightbox: flashable apps (Nova) get <esp-web-install-button manifest=...>; non-flashable
+      show a "source on GitHub" link (submissionUrl). Reuse the BASE / asset() helper pattern from App.tsx.
+      Scope: NEW file ONLY — src/components/WasmGallery.tsx. NEVER touch App.tsx / types.ts / other worktrees.
+      Build gate: `astro build` green. Own branch+worktree (off main).
+      PR/merge → main (lead-gated). Report ACK→blocked→done: maw hey 81-kru32:kru32.
+
+  - role: lessons
+    name: kru32-wasm-lessons
+    engine: omx-4
+    worktree: agents/kru32-wasm-lessons
+    branch: agents/kru32-wasm-lessons
+    prompt: |
+      Coder kru32-wasm-lessons — TASK #3: extract Tab 2 into src/components/LessonGrid.tsx.
+      Today the lesson grid + GalleryCard + Lightbox live INSIDE src/components/App.tsx. COPY that grid
+      logic (the LEVELS-grouped GalleryCard grid + its Lightbox) into a self-contained <LessonGrid/> that
+      reads LESSONS + LEVELS from src/data/lessons.ts. Keep identical look + behavior. Do NOT edit App.tsx —
+      the LEAD removes the old inline grid and mounts <LessonGrid/> at integration. Assume the FlowField
+      backdrop stays in the shell (do not include it here).
+      Scope: NEW file ONLY — src/components/LessonGrid.tsx. NEVER touch App.tsx / other worktrees.
+      Build gate: `astro build` green. Own branch+worktree (off main).
+      PR/merge → main (lead-gated). Report ACK→blocked→done: maw hey 81-kru32:kru32.
+
+  - role: tabs
+    name: kru32-wasm-tabs
+    engine: omx-5
+    worktree: agents/kru32-wasm-tabs
+    branch: agents/kru32-wasm-tabs
+    prompt: |
+      Coder kru32-wasm-tabs — TASK #4: presentational shell pieces (NEW files; lead mounts them).
+      Build:
+        - src/components/Tabs.tsx — controlled tab switcher (props: tabs:[{key,label}], active, onChange).
+          Van Gogh chrome-yellow active state, JetBrains Mono labels, WCAG contrast, Thai text readable.
+        - src/components/TopBar.tsx — top bar with a WiFi-config control (link/button to the existing
+          /wifi Improv page, or embed <improv-wifi-serial-launch-button>), matching the header style.
+      Presentational ONLY — no data fetching, no App.tsx edits. Lead imports these into App.tsx.
+      Scope: NEW files ONLY — src/components/Tabs.tsx + src/components/TopBar.tsx. NEVER touch App.tsx /
+      other worktrees. Build gate: `astro build` green. Own branch+worktree (off main).
+      PR/merge → main (lead-gated). Report ACK→blocked→done: maw hey 81-kru32:kru32.
+
+  - role: qa
+    name: kru32-wasm-qa
+    engine: omx-6
+    worktree: agents/kru32-wasm-qa
+    branch: agents/kru32-wasm-qa
+    prompt: |
+      Coder kru32-wasm-qa — TASK #5: verification + deploy readiness (runs mostly AFTER others merge).
+      Do:
+        - `astro build` green on integrated main; flag any base-path (/kru32-oracle) asset-URL breakage
+          (every asset URL must go through import.meta.env.BASE_URL; manifest parts paths relative to manifest).
+        - Verify EVERY manifest under public/wasm-apps/ has new_install_prompt_erase:false (the crash fix —
+          NON-NEGOTIABLE) and that referenced .bin parts exist on disk.
+        - Write scripts/verify-apps.ts that validates apps.ts entries (preview exists; flashable ⇒ manifest+bins exist).
+        - Confirm both tabs render and the Rule-6 AI footer ("🤖 หน้านี้สร้างและดูแลโดย kru32-oracle (AI) — ไม่ใช่มนุษย์")
+          is present on public pages.
+      Scope: NEW files ONLY (scripts/verify-apps.ts + notes). Coordinate any shared-file need THROUGH LEAD.
+      Build gate: `astro build` green. Report findings ACK→blocked→done: maw hey 81-kru32:kru32.
