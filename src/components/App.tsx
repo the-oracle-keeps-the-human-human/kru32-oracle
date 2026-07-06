@@ -215,7 +215,8 @@ function Lightbox({ lesson, onClose }: { lesson: Lesson; onClose: () => void }) 
           แก้ <span className="font-mono text-[#c9bfa6]">wifi: ssid/password</span> ใน YAML เป็นของคุณก่อน flash
         </div>
         <div className="mt-2 text-[10px] text-[#8a9bbd] text-center leading-relaxed">
-          ใช้ <b className="text-[#c9bfa6]">Chrome หรือ Edge</b> บนคอมพิวเตอร์ (WebSerial) · flash จบแล้วปิดหน้าได้เลย
+          ใช้ <b className="text-[#c9bfa6]">Microsoft Edge</b> จะเสถียรสุด (WebSerial)<br />
+          ถ้า Chrome บน macOS crash ตอน flash → เปลี่ยนไป Edge · flash จบแล้วปิดหน้าได้เลย
         </div>
       </div>
     </div>
