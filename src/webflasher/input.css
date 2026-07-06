@@ -24,17 +24,6 @@ body::before {
     radial-gradient(ellipse 35% 25% at 45% 45%, rgba(77, 196, 255, 0.04), transparent 70%);
 }
 
-@keyframes kru-spin {
-  to { transform: rotate(360deg); }
-}
-.kru-spin { animation: kru-spin 1.5s linear infinite; }
-
-@keyframes kru-bounce {
-  0%, 100% { transform: translateY(-70px); }
-  50% { transform: translateY(0); }
-}
-.kru-bounce { animation: kru-bounce .8s ease-in infinite; }
-
 /* scanline กวาดช้าๆ บนจอ device */
 @keyframes kru-scan {
   0% { transform: translateY(-100%); }
@@ -52,6 +41,6 @@ body::before {
 .kru-pulse { animation: kru-pulse 2.6s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .kru-spin, .kru-bounce, .kru-scan, .kru-pulse { animation: none; }
+  .kru-scan, .kru-pulse { animation: none; }
   .kru-scan { display: none; }
 }

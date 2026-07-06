@@ -7,7 +7,10 @@ export interface Lesson {
   level: Level;
   size: string;
   desc: string;
-  /** HTML snippet rendered inside the 320x480 device preview */
+  /**
+   * HTML ต้นทางสำหรับ gen-capture.ts เท่านั้น (สร้าง previews/<id>.png)
+   * runtime ไม่เรนเดอร์ HTML นี้แล้ว — ทั้ง cell และจอใหญ่ใช้รูป PNG
+   */
   preview: string;
 }
 

@@ -125,11 +125,14 @@ function DevicePreview({ lesson }: { lesson: Lesson | null }) {
             <i className="w-1 h-1 rounded-full bg-white/15" />
             <span className="w-9 h-[3px] rounded bg-white/10" />
           </div>
-          <div className="relative w-[240px] h-[360px] bg-black rounded-[10px] overflow-hidden flex flex-col items-center justify-center p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,.04)]">
+          <div className="relative w-[240px] h-[360px] bg-black rounded-[10px] overflow-hidden flex flex-col items-center justify-center shadow-[inset_0_0_0_1px_rgba(255,255,255,.04)]">
             {lesson ? (
-              <div
-                className="w-full h-full flex flex-col items-center justify-center text-center font-mono text-[11px] leading-snug"
-                dangerouslySetInnerHTML={{ __html: lesson.preview }}
+              <img
+                src={`previews/${lesson.id}.png`}
+                alt={`หน้าจอบท ${lesson.num} ${lesson.name}`}
+                width={240}
+                height={360}
+                className="absolute inset-0 w-full h-full"
               />
             ) : (
               <div className="text-[#6f8ba0] text-[10px] text-center font-mono">
