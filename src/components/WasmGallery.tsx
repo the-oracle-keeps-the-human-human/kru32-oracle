@@ -93,6 +93,11 @@ function WasmCard({ app, onOpen }: { app: WasmApp; onOpen: (app: WasmApp) => voi
 
 /* Lightbox — preview ใหญ่ + Flash สำหรับ app ที่ flashable, source link สำหรับ gallery-only */
 function WasmLightbox({ app, onClose }: { app: WasmApp; onClose: () => void }) {
+  // Once a flash starts, tear down the live WASM preview — running the gif decoder + canvas
+  // animation loop while esp-web-tools drives WebSerial/USB starves the browser and can crash it
+  // (the device re-enumerates each flash). Fall back to the static preview during/after flashing.
+  const [flashing, setFlashing] = useState(false);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -121,7 +126,7 @@ function WasmLightbox({ app, onClose }: { app: WasmApp; onClose: () => void }) {
           ✕
         </button>
 
-        {isPet(app) ? (
+        {isPet(app) && !flashing ? (
           /* pet pack → live in-browser WASM preview (self-framed, decoded by the on-device gif decoder) */
           <WasmRunner appId={app.id} states={PET_STATES} />
         ) : (
@@ -153,6 +158,7 @@ function WasmLightbox({ app, onClose }: { app: WasmApp; onClose: () => void }) {
             <esp-web-install-button manifest={manifestFor(app)}>
               <button
                 slot="activate"
+                onClick={() => setFlashing(true)}
                 className="kru-pulse mt-4 px-9 py-3 rounded-[10px] font-display font-bold text-sm tracking-wide text-[#1a1204] bg-gradient-to-br from-[#f6c544] to-[#e0a838] hover:-translate-y-px transition-transform cursor-pointer border-0"
               >
                 ⚡ Quick Flash
