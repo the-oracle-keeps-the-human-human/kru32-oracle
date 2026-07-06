@@ -1,16 +1,7 @@
 // Generated from workshop-04-esp32-wasm/submissions. Source repo is read-only for this worktree.
-// Local fallback type: matches the lead-owned WasmApp contract until src/data/types.ts lands here.
-export interface WasmApp {
-  id: string;
-  name: string;
-  blurb: string;
-  tag: string;
-  preview: string;
-  submissionUrl: string;
-  flashable: boolean;
-  manifest?: string;
-  kind?: string;
-}
+// WasmApp contract lives in the lead-owned src/data/types.ts (reconciled at integration).
+import type { WasmApp } from "./types";
+export type { WasmApp };
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const asset = (path: string) => `${BASE}/${path.replace(/^\//, "")}`;

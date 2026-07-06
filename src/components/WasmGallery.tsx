@@ -1,19 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { WASM_APPS } from "../data/apps";
-
-// Local fallback until the lead-owned src/data/types.ts lands in this worktree.
-// Keep this shape aligned with the team contract; do not edit types.ts here.
-type WasmApp = {
-  id: string;
-  name: string;
-  blurb: string;
-  tag: string;
-  preview: string;
-  submissionUrl: string;
-  flashable: boolean;
-  manifest?: string;
-  kind?: string;
-};
+import type { WasmApp } from "../data/types";
 
 // Astro/Vite injects the Pages base path (e.g. "/kru32-oracle/").
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
