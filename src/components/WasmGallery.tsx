@@ -224,6 +224,37 @@ export default function WasmGallery({ apps = WASM_APPS as WasmApp[] }: { apps?: 
 
   return (
     <>
+      {/* ── ทดสอบบอร์ด — flash แล้วจอโชว์ WiFi info ── */}
+      <section className="mb-9">
+        <h2 className="font-display text-[13px] font-semibold tracking-wide pb-2 mb-4 border-b border-[#2a3a5c] text-[#4dc4ff]">
+          ทดสอบบอร์ด — First Flash
+        </h2>
+        <div className="rounded-[10px] p-[3px] bg-gradient-to-b from-[#1a3a5c] to-[#0e2145] max-w-[480px]">
+          <div className="rounded-[8px] bg-[#0b1b39] p-5 flex flex-col sm:flex-row items-center gap-4">
+            <div className="shrink-0 w-[96px] h-[96px] rounded-[10px] bg-[#0e2145] border border-[#22304d] grid place-items-center">
+              <span className="text-[40px]">📶</span>
+            </div>
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <div className="font-display text-[15px] font-bold text-[#f4efe0]">WiFi Placeholder</div>
+              <p className="text-[12px] text-[#c9bfa6] mt-1 leading-relaxed">
+                Flash แล้วจอโชว์ WiFi status, IP, MAC, signal, uptime — ยืนยันว่าบอร์ดทำงาน + ต่อ WiFi ได้
+              </p>
+              <div className="mt-3">
+                {hasSerial ? (
+                  <esp-web-install-button manifest={asset("manifests/placeholder.json")}>
+                    <button slot="activate" className="px-5 py-2 rounded-[8px] font-display font-bold text-[12px] text-[#1a1204] bg-gradient-to-br from-[#4dc4ff] to-[#2a88cc] hover:-translate-y-px transition-transform cursor-pointer border-0">
+                      ⚡ Flash ทดสอบ
+                    </button>
+                  </esp-web-install-button>
+                ) : (
+                  <span className="text-[11px] text-[#ff8a6b]">ใช้ Chromium (Chrome/Edge/Comet) บนคอมพิวเตอร์</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="flex flex-col gap-9">
         {groups.map((group) => (
           <section key={group.key}>
