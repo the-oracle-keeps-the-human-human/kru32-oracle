@@ -241,6 +241,8 @@ export default function App({ initialId }: { initialId?: string }) {
             คลิกภาพเพื่อดูจอใหญ่แล้ว flash ลงบอร์ด JC3248W535 ·{" "}
             <a className="text-[#f6c544] hover:underline" href={asset("why-hard/")}>บทที่ 0 — ทำไมจอยาก</a>
             {" · "}
+            <a className="text-[#f6c544] hover:underline" href={asset("lesson/")}>Lesson: erase:false</a>
+            {" · "}
             <a className="text-[#f6c544] hover:underline" href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle" target="_blank" rel="noopener noreferrer">Source</a>
           </p>
           <div className="mt-4 flex items-center justify-center gap-2 text-[13px]">

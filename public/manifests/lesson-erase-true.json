@@ -1,0 +1,8 @@
+{
+  "name": "Kru32 (erase:true — CRASH demo)",
+  "version": "1.0.0",
+  "new_install_prompt_erase": true,
+  "builds": [
+    { "chipFamily": "ESP32-S3", "parts": [ { "path": "../firmware/kru32-basic.bin", "offset": 0 } ] }
+  ]
+}
