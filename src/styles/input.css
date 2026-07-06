@@ -6,8 +6,8 @@
 @source "../data/";
 
 @theme {
-  /* หัวเรื่อง = serif แสดงอารมณ์ (Van Gogh hand); ตัวอ่าน = sans อ่านง่ายรองรับไทย */
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  /* หัว/เลข/label = JetBrains Mono (teaching/terminal vibe); ไทย fallback เป็น Sans Thai */
+  --font-display: "JetBrains Mono", "IBM Plex Sans Thai", ui-monospace, Menlo, monospace;
 }
 
 /* ── Van Gogh palette ──

@@ -26,9 +26,12 @@ logger:
   hardware_uart: USB_SERIAL_JTAG
 
 # wifi: เปลี่ยน ssid/password เป็นของคุณเอง
+# WiFi ตั้งผ่านเว็บ flasher (Improv Serial) — ไม่ต้อง hardcode
 wifi:
-  ssid: kru32-dev
-  password: kru32pass123
+  ap: {}
+
+# Improv Serial — esp-web-tools โชว์ "Configure Wi-Fi" หลัง flash
+improv_serial:
 
 # ── ตัวแปร global: counter ที่เพิ่มทุกวินาที ──
 globals:

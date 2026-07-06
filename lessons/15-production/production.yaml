@@ -32,14 +32,16 @@ logger:
   level: WARN
   hardware_uart: USB_SERIAL_JTAG
 
-# wifi: เปลี่ยน ssid/password เป็นของจริงก่อน deploy
+# WiFi ตั้งผ่านเว็บ flasher (Improv Serial) — ไม่ต้อง hardcode
+# production คง fallback AP + power_save ไว้สอน pattern deploy จริง
 wifi:
-  ssid: kru32-dev
-  password: kru32pass123
   ap:
     ssid: "Kru32-Fallback"
     password: "kru32fallback"
   power_save_mode: LIGHT
+
+# Improv Serial — esp-web-tools โชว์ "Configure Wi-Fi" หลัง flash
+improv_serial:
 
 captive_portal:
 

@@ -43,7 +43,7 @@ function FlowField() {
         { x: W * 0.15, y: H * 0.7, s: -1 },
         { x: W * 0.45, y: H * 0.4, s: 0.6 },
       ];
-      const n = Math.min(420, Math.floor((window.innerWidth * window.innerHeight) / 4200));
+      const n = Math.min(150, Math.floor((window.innerWidth * window.innerHeight) / 13000));
       parts = Array.from({ length: n }, () => {
         const x = Math.random() * W, y = Math.random() * H;
         return { x, y, px: x, py: y, c: strokes[(Math.random() * strokes.length) | 0] };
@@ -63,7 +63,7 @@ function FlowField() {
         for (const v of vortices) {
           const dx = p.x - v.x, dy = p.y - v.y;
           const d2 = dx * dx + dy * dy + 9000 * dpr;
-          const f = (v.s * 5200 * dpr) / d2;
+          const f = (v.s * 3400 * dpr) / d2;
           // ตั้งฉาก = หมุนวน + ดูดเข้าเล็กน้อย
           vx += -dy * f - dx * 0.00006;
           vy += dx * f - dy * 0.00006;
@@ -93,7 +93,7 @@ function FlowField() {
         for (const v of vortices) {
           const dx = p.x - v.x, dy = p.y - v.y;
           const d2 = dx * dx + dy * dy + 9000 * dpr;
-          const f = (v.s * 5200 * dpr) / d2;
+          const f = (v.s * 3400 * dpr) / d2;
           vx += -dy * f - dx * 0.00006;
           vy += dx * f - dy * 0.00006;
         }
@@ -111,7 +111,7 @@ function FlowField() {
     window.addEventListener("resize", onResize);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
   }, []);
-  return <canvas ref={ref} aria-hidden="true" className="fixed inset-0 h-full w-full pointer-events-none opacity-90" />;
+  return <canvas ref={ref} aria-hidden="true" className="fixed inset-0 h-full w-full pointer-events-none opacity-40" />;
 }
 
 /* การ์ดในแกลเลอรี = ภาพวาดใส่กรอบ hover ยกขึ้น+เรืองแสง */
@@ -211,7 +211,12 @@ function Lightbox({ lesson, onClose }: { lesson: Lesson; onClose: () => void }) 
           <a href={asset(`lessons/${lesson.id}/`)} className="font-display text-[#f6c544] hover:underline">ดู YAML เต็ม →</a>
         </div>
         <div className="mt-3 text-[10px] text-[#8a9bbd] text-center leading-relaxed">
-          .factory.bin (bootloader + partition) · เสียบ USB-C พอร์ต native · ~30 วินาที
+          .factory.bin (bootloader + partition) · เสียบ USB-C พอร์ต native · ~30 วินาที<br />
+          หลัง flash เว็บจะถามตั้งค่า Wi-Fi ผ่าน USB (Improv) ได้เลย
+        </div>
+        <div className="mt-2 text-[10px] text-[#e0a838] text-center leading-relaxed">
+          ⚠️ ใช้ <b>Chrome หรือ Edge</b> เท่านั้น — เบราว์เซอร์ Chromium ตัวอื่น (Comet/Arc/Brave)
+          อาจ crash ตอนบอร์ด reset หลัง flash
         </div>
       </div>
     </div>
