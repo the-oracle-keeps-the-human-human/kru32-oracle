@@ -121,11 +121,11 @@ function WasmLightbox({ app, onClose }: { app: WasmApp; onClose: () => void }) {
           ✕
         </button>
 
-        <div className="rounded-[20px] p-3 bg-gradient-to-b from-[#8a6a2e] to-[#2a2012] shadow-[0_20px_50px_-18px_rgba(0,0,0,.8),0_0_60px_-14px_rgba(246,197,68,.3)]">
-          {isPet(app) ? (
-            /* pet pack → live in-browser WASM preview (decoded by the same on-device gif decoder) */
-            <WasmRunner appId={app.id} states={PET_STATES} />
-          ) : (
+        {isPet(app) ? (
+          /* pet pack → live in-browser WASM preview (self-framed, decoded by the on-device gif decoder) */
+          <WasmRunner appId={app.id} states={PET_STATES} />
+        ) : (
+          <div className="rounded-[20px] p-2.5 bg-gradient-to-b from-[#8a6a2e] to-[#2a2012] shadow-[0_20px_50px_-18px_rgba(0,0,0,.8),0_0_60px_-14px_rgba(246,197,68,.3)]">
             <div className="relative w-[228px] h-[342px] bg-black rounded-[11px] overflow-hidden">
               <img
                 src={asset(app.preview)}
@@ -136,8 +136,8 @@ function WasmLightbox({ app, onClose }: { app: WasmApp; onClose: () => void }) {
               />
               <div aria-hidden="true" className="kru-scan absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-transparent via-[#f6c5441a] to-transparent pointer-events-none" />
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="text-center mt-4">
           <div className="font-display text-[10px] tracking-[.2em] uppercase text-[#f6c544]">

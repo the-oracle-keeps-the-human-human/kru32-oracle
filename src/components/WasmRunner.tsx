@@ -479,22 +479,29 @@ export default function WasmRunner({ appId, states = DEFAULT_STATES }: WasmRunne
   const displayHeight = dimensions.height * FRAME_SCALE;
 
   return (
-    <section
-      className="inline-flex min-w-fit flex-col items-start gap-2 text-[#9bb0d3]"
+    <div
+      className="flex w-full flex-col items-center gap-3 text-[#9bb0d3]"
       style={{ fontFamily: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
     >
-      <div className="overflow-hidden rounded-[10px] border border-[#2a3a5c] bg-black/10">
-        <canvas
-          ref={canvasRef}
-          width={dimensions.width}
-          height={dimensions.height}
-          className="block image-rendering-pixelated"
+      {/* gilt-framed screen — the pet decoded LIVE by the same on-device WASM gif decoder */}
+      <div className="rounded-[16px] p-2 bg-gradient-to-b from-[#8a6a2e] to-[#2a2012] shadow-[0_16px_40px_-18px_rgba(0,0,0,.8),0_0_50px_-16px_rgba(246,197,68,.3)]">
+        <div
+          className="grid place-items-center overflow-hidden rounded-[9px] border border-[#1a1204] bg-black"
           style={{ width: `${displayWidth}px`, height: `${displayHeight}px` }}
-          aria-label="WASM GIF character frame"
-        />
+        >
+          <canvas
+            ref={canvasRef}
+            width={dimensions.width}
+            height={dimensions.height}
+            className="block"
+            style={{ width: `${displayWidth}px`, height: `${displayHeight}px`, imageRendering: "pixelated" }}
+            aria-label="WASM GIF character frame"
+          />
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
+      {/* state buttons */}
+      <div className="flex max-w-[330px] flex-wrap justify-center gap-1.5">
         {availableStates.map((stateName) => {
           const active = stateName === activeState;
           return (
@@ -512,24 +519,25 @@ export default function WasmRunner({ appId, states = DEFAULT_STATES }: WasmRunne
             </button>
           );
         })}
+      </div>
 
+      {/* play + one-line caption */}
+      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={handlePlayToggle}
-          className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+          className={`rounded-full px-3 py-1 text-[11px] font-medium transition ${
             playing
               ? "bg-[#0f2447] text-[#e8e2d0] border border-[#f6c544]"
-              : "border border-[#2a3a5c] text-[#91a6cc]"
+              : "border border-[#2a3a5c] text-[#91a6cc] hover:border-[#f6c544]"
           }`}
         >
           {playing ? "⏸ pause" : "▶ play"}
         </button>
+        <span className="text-[10px] text-[#7a8bad]">
+          {error ? <span className="text-[#ff9f7a]">{error}</span> : <>🖥️ decoded in WASM · {status}</>}
+        </span>
       </div>
-
-      {error ? <p className="max-w-[288px] text-[11px] text-[#ff9f7a]">{error}</p> : null}
-      <p className="text-[10px] text-[#8a9bbd]">{status}</p>
-      <p className="text-[10px] text-[#7a8bad]">module: {appId}</p>
-      <p className="text-[10px] text-[#7a8bad]">{`gif src: ${APP_BASE}/${appId}/characters/${appId}/`}</p>
-    </section>
+    </div>
   );
 }
