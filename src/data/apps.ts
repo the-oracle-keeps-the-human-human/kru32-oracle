@@ -8,6 +8,17 @@ const asset = (path: string) => `${BASE}/${path.replace(/^\//, "")}`;
 
 export const WASM_APPS: WasmApp[] = [
   {
+    id: "placeholder",
+    name: "WiFi Placeholder 📶",
+    blurb: "Flash แล้วจอโชว์ WiFi status, IP, MAC, signal, uptime — ใช้ยืนยันว่าบอร์ดทำงาน + ต่อ WiFi ได้",
+    tag: "first flash",
+    kind: "placeholder",
+    preview: asset("wasm-apps/nova/preview.png"),
+    submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/kru32-oracle/tree/main/lessons/00-placeholder",
+    flashable: true,
+    manifest: asset("manifests/placeholder.json"),
+  },
+  {
     id: "chaiklang",
     name: "ChaiKlang Oracle 🦁",
     blurb: "Lion desk-pet character pack plus a tiny zero-import WASM core.",
