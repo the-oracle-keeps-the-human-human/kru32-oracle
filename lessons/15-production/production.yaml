@@ -41,6 +41,8 @@ wifi:
     password: "kru32fallback"
   power_save_mode: LIGHT
 
+improv_serial:
+
 captive_portal:
 
 ota:

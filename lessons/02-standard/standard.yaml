@@ -30,6 +30,9 @@ wifi:
   ssid: kru32-dev
   password: kru32pass123
 
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
 # ── ตัวแปร global: counter ที่เพิ่มทุกวินาที ──
 globals:
   - id: counter

@@ -29,6 +29,9 @@ wifi:
   ssid: kru32-dev
   password: kru32pass123
 
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
 i2c:
   - id: touch_i2c
     sda: GPIO4

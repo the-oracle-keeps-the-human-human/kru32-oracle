@@ -1,0 +1,63 @@
+---
+import Base from "../layouts/Base.astro";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<Base title="ตั้งค่า WiFi — Kru32 Oracle" description="ต่อ WiFi ให้บอร์ด JC3248W535 ที่ flash แล้ว ผ่าน Improv Serial">
+  <div class="relative max-w-[640px] mx-auto px-6 py-10 pb-16">
+    <a href={`${base}/`} class="font-display text-[11px] text-[#f6c544] hover:underline">← กลับหน้ารวมบท</a>
+
+    <header class="mt-6 text-center">
+      <div class="font-display text-[13px] italic text-[#f6c544]">Kru32 Oracle</div>
+      <h1 class="font-display text-[2rem] font-bold text-[#f4efe0] mt-1 [text-shadow:0_2px_28px_rgba(246,197,68,.3)]">
+        ตั้งค่า WiFi
+      </h1>
+      <p class="text-[#c9bfa6] text-sm mt-3">
+        สำหรับบอร์ด JC3248W535 ที่ <b class="text-[#f4efe0]">flash แล้ว</b> — ต่อ WiFi ผ่าน USB
+        โดยไม่ต้องแก้ YAML
+      </p>
+    </header>
+
+    <!-- ขั้นตอน -->
+    <ol class="mt-8 flex flex-col gap-3 text-[13px] text-[#c9bfa6]">
+      <li class="flex gap-3 items-start rounded-lg border border-[#22304d] bg-[#0e2145]/70 p-3">
+        <span class="font-display font-bold text-[#f6c544] shrink-0">1</span>
+        <span>flash บทที่ต้องการก่อน (จากหน้ารวมบท) แล้ว <b class="text-[#f4efe0]">รอบอร์ดบูทจนจอติด</b> — สำคัญ: ต้องบูทเสร็จก่อน ไม่งั้นจะพลาด</span>
+      </li>
+      <li class="flex gap-3 items-start rounded-lg border border-[#22304d] bg-[#0e2145]/70 p-3">
+        <span class="font-display font-bold text-[#f6c544] shrink-0">2</span>
+        <span>เสียบ USB-C ค้างไว้ แล้วกดปุ่มด้านล่าง → เลือกพอร์ตของบอร์ด</span>
+      </li>
+      <li class="flex gap-3 items-start rounded-lg border border-[#22304d] bg-[#0e2145]/70 p-3">
+        <span class="font-display font-bold text-[#f6c544] shrink-0">3</span>
+        <span>ใส่ชื่อ WiFi + รหัสผ่าน → บอร์ดต่อเน็ตเอง (ไม่ต้อง hardcode ใน YAML)</span>
+      </li>
+    </ol>
+
+    <!-- ปุ่ม Improv-Serial (คนละตัวกับ flash — connect อย่างเดียว ไม่ reset/erase) -->
+    <div class="mt-8 flex flex-col items-center gap-2">
+      <improv-wifi-serial-launch-button>
+        <button
+          slot="activate"
+          class="kru-pulse px-9 py-3 rounded-[10px] font-display font-bold text-sm tracking-wide text-[#1a1204] bg-gradient-to-br from-[#f6c544] to-[#e0a838] hover:-translate-y-px transition-transform cursor-pointer border-0"
+        >
+          📶 ต่อ WiFi ให้บอร์ด
+        </button>
+        <span slot="unsupported" class="text-[11px] text-[#ff8a6b] text-center">
+          เบราว์เซอร์นี้ไม่รองรับ — ใช้ Microsoft Edge หรือ Chrome บนคอมพิวเตอร์
+        </span>
+      </improv-wifi-serial-launch-button>
+    </div>
+
+    <div class="mt-6 rounded-lg border border-[#2a3a5c] bg-[#0b1b39]/60 p-4 text-[11px] text-[#8a9bbd] leading-relaxed">
+      <b class="text-[#c9bfa6]">ทำไมแยกจากปุ่ม Flash?</b><br />
+      ตอน flash เสร็จ บอร์ด reset → USB re-enumerate ถ้าตั้ง WiFi ตอนนั้นทันที Chromium
+      (Chrome/Edge/Comet) จะ crash หน้านี้จึงทำ WiFi <b class="text-[#c9bfa6]">แยกทีหลัง</b> ตอนบอร์ดนิ่งแล้ว
+      — ไม่มี re-enumerate = ไม่ crash · ถ้า Chrome ยังมีปัญหา ลอง <b class="text-[#c9bfa6]">Edge</b>
+    </div>
+
+    <footer class="mt-10 pt-5 border-t border-[#2a3a5c] text-center text-[11px] text-[#8a9bbd]">
+      <span class="block text-[#5f7091]">🤖 หน้านี้สร้างและดูแลโดย kru32-oracle (AI) — ไม่ใช่มนุษย์</span>
+    </footer>
+  </div>
+</Base>

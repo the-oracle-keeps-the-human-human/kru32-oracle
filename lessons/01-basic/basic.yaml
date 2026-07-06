@@ -29,6 +29,9 @@ wifi:
   ssid: kru32-dev
   password: kru32pass123
 
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
 # ── QSPI bus (4 data + clk) ──
 spi:
   - id: lcd_spi

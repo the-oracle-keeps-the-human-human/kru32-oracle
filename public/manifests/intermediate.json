@@ -5,7 +5,13 @@
   "builds": [
     {
       "chipFamily": "ESP32-S3",
-      "parts": [{ "path": "../firmware/kru32-intermediate.bin", "offset": 0 }]
+      "parts": [
+        {
+          "path": "../firmware/kru32-intermediate.bin",
+          "offset": 0
+        }
+      ]
     }
-  ]
+  ],
+  "new_install_improv_wait_time": 0
 }

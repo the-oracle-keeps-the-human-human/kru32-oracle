@@ -243,6 +243,15 @@ export default function App({ initialId }: { initialId?: string }) {
             {" · "}
             <a className="text-[#f6c544] hover:underline" href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle" target="_blank" rel="noopener noreferrer">Source</a>
           </p>
+          <div className="mt-4 flex items-center justify-center gap-2 text-[13px]">
+            <span className="font-display text-[10px] text-[#8a9bbd] tracking-wide">FLASH แล้ว →</span>
+            <a
+              href={asset("wifi/")}
+              className="font-display font-semibold px-4 py-1.5 rounded-full border border-[#8a6a2e] bg-[#f6c5441a] text-[#f6c544] hover:bg-[#f6c54426] hover:-translate-y-px transition-all"
+            >
+              📶 ตั้งค่า WiFi ให้บอร์ด
+            </a>
+          </div>
         </header>
 
         <div className="flex flex-col gap-9">
