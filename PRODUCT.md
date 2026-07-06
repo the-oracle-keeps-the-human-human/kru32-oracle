@@ -36,7 +36,7 @@ Reference ที่ดี: หน้า install ของ ESPHome / WLED / Tasmo
 2. **ลำดับบทเรียนคือ UI** — เรียงตามระดับ Basic → Advanced, บท 01 มี marker "เริ่มที่นี่" ชัดเจน ผู้ใช้ไม่ต้องเดาว่าเริ่มตรงไหน
 3. **ความจริงเท่านั้น** — ขนาดไฟล์จริง, board spec จริง, คำเตือน browser จริง (WebSerial = Chrome/Edge desktop only) ไม่มี placeholder
 4. **บอร์ดเดียวเท่านั้น** — JC3248W535 only ห้ามเพิ่มบอร์ดอื่น (user สั่งสองครั้ง)
-5. **Stack ตายตัว** — React + Tailwind + TypeScript, build ด้วย bun เป็น static ไฟล์บน docs/ ห้าม inline vanilla JS (user สั่ง)
+5. **Stack ตายตัว** — React + Tailwind + TypeScript บน **Astro** (React = island `client:only`), deploy ด้วย GitHub Actions (`withastro`-style workflow) เสิร์ฟ static จาก `dist/` ห้าม inline vanilla JS (user สั่ง) — asset ทุกตัวผ่าน `import.meta.env.BASE_URL`; firmware/manifests/previews อยู่ `public/` โครง sibling เดิม (manifest `../firmware` ต้องรอด)
 
 ## Accessibility & Inclusion
 

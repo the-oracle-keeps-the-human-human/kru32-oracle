@@ -1,8 +1,16 @@
 name: Deploy Astro to GitHub Pages
 
 on:
-  # เริ่มด้วย manual เท่านั้น — ยังไม่ on:push จนกว่า cutover (S7) จะพร้อม
-  # ระหว่างนี้ Pages ยังเสิร์ฟ main:/docs (เว็บ live ไม่กระทบ)
+  # cutover (S7) สำเร็จแล้ว — auto-deploy ทุก push ที่แตะ source ของเว็บ
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "astro.config.mjs"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:

@@ -147,6 +147,26 @@ curl -s -o /dev/null -w '%{http_code}' \
   https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/
 ```
 
+## 🚀 Astro บน Pages (cutover จาก branch:/docs → GitHub Actions)
+
+```bash
+# astro.config: site + base '/kru32-oracle' (project page — ห้ามลืม ไม่งั้น 404 หมด)
+# React tree = island client:only (กัน SSR crash จาก document/navigator)
+# asset ทุกตัวผ่าน import.meta.env.BASE_URL; public/{firmware,manifests,previews} sibling เดิม
+
+# cutover: flip source legacy → Actions (จุดเดียวที่แตะ live — docs/ ค้างไว้เป็น rollback)
+gh api -X PUT repos/<owner>/<repo>/pages -f build_type=workflow
+gh workflow run deploy.yml
+gh run watch $(gh run list --workflow=deploy.yml -L1 --json databaseId -q '.[0].databaseId') --exit-status
+
+# ⚠️ "Deployment failed, try again later" ครั้งแรกหลัง flip = provisioning delay
+#    รอ ~90s แล้ว re-run — หายเอง (ไม่ใช่บั๊ก config)
+
+# rollback ถ้าพัง: flip กลับ (docs/ ยังอยู่ครบ)
+gh api -X PUT repos/<owner>/<repo>/pages -f build_type=legacy \
+  -f "source[branch]=main" -f "source[path]=/docs"
+```
+
 ## ⚡ ลัด
 
 | ทำอะไร | คำสั่ง |

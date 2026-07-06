@@ -1,9 +1,12 @@
 /**
- * สร้าง docs/_capture.html — เรนเดอร์ preview ของทุกบทเป็น tile 240x360
- * เรียงต่อกันแนวตั้ง (ไม่มีช่องว่าง) เพื่อให้ screenshot เดียวแล้ว crop เป็นรูปต่อบทได้
- * ใช้: bun run src/webflasher/gen-capture.ts
+ * DEV-ONLY — regenerate public/previews/<id>.png จาก preview HTML ใน lessons data
+ * ไม่รันใน CI (PNG ที่ได้ commit ไว้แล้ว) — รันเองเมื่อแก้ preview:
+ *
+ *   bun run src/scripts/gen-capture.ts        # เขียน _capture.html (gitignored)
+ *   # แล้ว screenshot strip 240x(360*N) + crop เป็น public/previews/<id>.png
+ *   # (ลำดับ id ตาม LESSONS — ดู log ท้ายสคริปต์)
  */
-import { LESSONS } from "./lessons";
+import { LESSONS } from "../data/lessons";
 
 const tiles = LESSONS.map(
   (l) => `<div class="tile" data-id="${l.id}">${l.preview}</div>`
@@ -26,5 +29,6 @@ const html = `<!doctype html>
 </style>
 ${tiles}`;
 
-await Bun.write("docs/_capture.html", html);
-console.log(`wrote docs/_capture.html — ${LESSONS.length} tiles, order: ${LESSONS.map((l) => l.id).join(",")}`);
+await Bun.write("_capture.html", html);
+console.log(`wrote _capture.html — ${LESSONS.length} tiles`);
+console.log(`crop order: ${LESSONS.map((l) => l.id).join(",")}`);

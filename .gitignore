@@ -6,9 +6,12 @@ build/
 # Node
 node_modules/
 
-# Astro build output (CI rebuilds; docs/ stays until cutover S8)
+# Astro build output (CI rebuilds)
 dist/
 .astro/
+
+# gen-capture scratch (dev-only preview regeneration)
+_capture.html
 
 # Secrets (never commit)
 secrets.yaml

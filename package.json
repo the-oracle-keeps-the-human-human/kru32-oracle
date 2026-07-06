@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "build:flasher": "bun build src/webflasher/index.tsx --outdir docs --entry-naming app.js --minify --define process.env.NODE_ENV=\"'production'\" && bunx @tailwindcss/cli -i src/webflasher/input.css -o docs/tw.css --minify"
+    "gen:previews": "bun run src/scripts/gen-capture.ts"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.1",
