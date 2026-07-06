@@ -15,7 +15,7 @@
           "offset": 32768
         },
         {
-          "path": "jc3248_pet_idf-clawd.bin",
+          "path": "../_shared/jc3248_pet_idf-clawd.bin",
           "offset": 65536
         },
         {
