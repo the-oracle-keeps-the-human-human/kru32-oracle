@@ -35,7 +35,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     </ol>
 
     <!-- ปุ่ม Improv-Serial (คนละตัวกับ flash — connect อย่างเดียว ไม่ reset/erase) -->
-    <div class="mt-8 flex flex-col items-center gap-2">
+    <div class="mt-8 flex flex-col items-center gap-3">
       <improv-wifi-serial-launch-button>
         <button
           slot="activate"
@@ -43,31 +43,27 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         >
           📶 ต่อ WiFi ให้บอร์ด
         </button>
-        <span slot="unsupported" class="text-[11px] text-[#ff8a6b] text-center">
-          เบราว์เซอร์นี้ไม่รองรับ — ใช้ Chromium (Chrome / Edge / Comet) บนคอมพิวเตอร์
+        <span slot="unsupported" class="block mt-2 max-w-[380px] text-[11px] text-[#ff8a6b] text-center leading-relaxed">
+          เบราว์เซอร์นี้ไม่รองรับ Improv<br />ใช้ Chromium (Chrome / Edge / Comet) บนคอมพิวเตอร์
         </span>
       </improv-wifi-serial-launch-button>
-    </div>
 
-    <!-- Chromium-based browsers (Comet/Arc) may fail the Improv SDK's built-in check
-         even though navigator.serial exists. Show a manual-connect fallback. -->
-    <div id="serial-fallback" class="mt-4 hidden flex-col items-center gap-2">
-      <p class="text-[11px] text-[#c9bfa6] text-center">ปุ่มด้านบนไม่ทำงาน? ลอง connect เองตรง ๆ:</p>
-      <button
-        id="manual-serial"
-        class="px-7 py-2.5 rounded-[10px] font-display font-bold text-sm text-[#1a1204] bg-gradient-to-br from-[#4dc4ff] to-[#2a88cc] hover:-translate-y-px transition-transform cursor-pointer border-0"
-      >
-        🔌 เลือกพอร์ต Serial
-      </button>
-      <p id="serial-status" class="text-[11px] text-[#8a9bbd]"></p>
+      <!-- Chromium-based browsers (Comet/Arc) may fail the Improv SDK's built-in check
+           even though navigator.serial exists. Show a manual-connect fallback. -->
+      <div id="serial-fallback" class="hidden flex-col items-center gap-2 mt-2 pt-3 border-t border-[#22304d] w-full max-w-[420px]">
+        <p class="text-[11px] text-[#c9bfa6] text-center">ปุ่มด้านบนไม่ทำงาน? ลอง connect เองตรง ๆ:</p>
+        <button
+          id="manual-serial"
+          class="px-7 py-2.5 rounded-[10px] font-display font-bold text-sm text-[#1a1204] bg-gradient-to-br from-[#4dc4ff] to-[#2a88cc] hover:-translate-y-px transition-transform cursor-pointer border-0"
+        >
+          🔌 เลือกพอร์ต Serial
+        </button>
+        <p id="serial-status" class="text-[11px] text-[#8a9bbd] text-center max-w-[380px]"></p>
+      </div>
     </div>
 
     <script>
-      // If the browser has navigator.serial but the Improv component shows "unsupported",
-      // surface a manual fallback that opens the serial picker directly.
       if ("serial" in navigator) {
-        const el = document.querySelector("improv-wifi-serial-launch-button");
-        // Show fallback after a short delay (give the component time to mount)
         setTimeout(() => {
           const fb = document.getElementById("serial-fallback");
           if (fb) fb.classList.replace("hidden", "flex");
@@ -82,8 +78,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
               await port.open({ baudRate: 115200 });
               if (status) status.textContent = "✅ เชื่อมต่อแล้ว — ใช้ Improv WiFi ผ่านปุ่มด้านบนได้เลย";
               await port.close();
-              // Retry the Improv button now that the user granted a port
-              if (el) el.click();
             } catch (e) {
               if (status) status.textContent = "⚠️ " + (e instanceof Error ? e.message : String(e));
             }
