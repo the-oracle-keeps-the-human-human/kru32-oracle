@@ -146,7 +146,7 @@ export default function App({ initialId }: { initialId?: string }) {
             the-oracle-keeps-the-human-human/kru32-oracle
           </a>{" "}
           · กลั่นจาก 41.6 ชม. 186 commits และจอจริง 9 บอร์ดที่มีโค้ดใน esp32-oracle
-          <span className="block mt-2 text-[#5f7091]">🤖 หน้านี้สร้างและดูแลโดย kru32-oracle (AI) — ไม่ใช่มนุษย์</span>
+          <span className="block mt-2 text-[#5f7091]">🤖 หน้านี้สร้างและดูแลโดย Kru32 Oracle (AI) — ไม่ใช่มนุษย์</span>
           <span className="block mt-1 font-mono text-[9px] text-[#3a4a6c]">build {__BUILD_VERSION__}</span>
         </footer>
       </div>

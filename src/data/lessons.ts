@@ -25,27 +25,27 @@ export const LESSONS: Lesson[] = [
   {
     id: "basic", num: "01", name: "Hello Display", level: "basic", size: "765 KB",
     desc: "จอดำ + ข้อความ + backlight ติด จุดเริ่มของทุกอย่าง",
-    preview: `<div style="font-size:16px;color:#fff;font-weight:600">Hello kru32</div>`,
+    preview: `<div style="font-size:16px;color:#fff;font-weight:600">Hello Kru32 Oracle</div>`,
   },
   {
     id: "standard", num: "02", name: "Living Screen", level: "standard", size: "770 KB",
     desc: "Counter เปลี่ยนทุกวินาที + รูปทรง + brightness",
-    preview: `<div style="color:#ffc800;font-size:10px;margin-bottom:8px">Kru32 Standard</div><div style="font-size:28px;color:#fff;font-weight:700">42</div><div style="width:65%;height:5px;background:#1a1a2e;border-radius:3px;margin-top:8px"><div style="width:42%;height:100%;background:#ffc800;border-radius:3px"></div></div><div style="color:#aaa;font-size:8px;margin-top:6px">seconds</div>`,
+    preview: `<div style="color:#ffc800;font-size:10px;margin-bottom:8px">Kru32 Oracle Standard</div><div style="font-size:28px;color:#fff;font-weight:700">42</div><div style="width:65%;height:5px;background:#1a1a2e;border-radius:3px;margin-top:8px"><div style="width:42%;height:100%;background:#ffc800;border-radius:3px"></div></div><div style="color:#aaa;font-size:8px;margin-top:6px">seconds</div>`,
   },
   {
     id: "intermediate", num: "03", name: "Touch Interactive", level: "intermediate", size: "976 KB",
     desc: "LVGL + ปุ่มสัมผัส กดแล้วตัวเลขเพิ่ม bar วิ่ง",
-    preview: `<div style="color:#ffd27f;font-size:10px;margin-bottom:10px">Kru32 Interactive</div><div style="font-size:32px;color:#0f7;font-weight:700">70</div><div style="width:70%;height:6px;background:#1a1a2e;border-radius:3px;margin:10px 0"><div style="width:70%;height:100%;background:#0f7;border-radius:3px"></div></div><div style="background:#1f3540;border:1px solid #ffd27f;color:#ffd27f;padding:4px 14px;border-radius:6px;font-size:10px;font-weight:600">+10</div>`,
+    preview: `<div style="color:#ffd27f;font-size:10px;margin-bottom:10px">Kru32 Oracle Interactive</div><div style="font-size:32px;color:#0f7;font-weight:700">70</div><div style="width:70%;height:6px;background:#1a1a2e;border-radius:3px;margin:10px 0"><div style="width:70%;height:100%;background:#0f7;border-radius:3px"></div></div><div style="background:#1f3540;border:1px solid #ffd27f;color:#ffd27f;padding:4px 14px;border-radius:6px;font-size:10px;font-weight:600">+10</div>`,
   },
   {
     id: "advanced", num: "04", name: "Multi-page Nav", level: "advanced", size: "970 KB",
     desc: "3 หน้า + nav bar ล่าง แตะเปลี่ยนหน้า",
-    preview: `<div style="color:#ffd27f;font-size:14px;font-weight:600;margin-bottom:4px">HOME</div><div style="color:#fff;font-size:9px">Welcome to Kru32</div><div style="display:flex;gap:5px;margin-top:auto;padding-top:20px"><div style="background:#1f3540;border:1px solid #ffd27f;color:#ffd27f;padding:3px 8px;border-radius:5px;font-size:7px;font-weight:600">HOME</div><div style="background:#0a1428;border:1px solid #4fb3ff;color:#4fb3ff;padding:3px 8px;border-radius:5px;font-size:7px">STATS</div><div style="background:#280a0a;border:1px solid #ff6b6b;color:#ff6b6b;padding:3px 8px;border-radius:5px;font-size:7px">ABOUT</div></div>`,
+    preview: `<div style="color:#ffd27f;font-size:14px;font-weight:600;margin-bottom:4px">HOME</div><div style="color:#fff;font-size:9px">Welcome to Kru32 Oracle</div><div style="display:flex;gap:5px;margin-top:auto;padding-top:20px"><div style="background:#1f3540;border:1px solid #ffd27f;color:#ffd27f;padding:3px 8px;border-radius:5px;font-size:7px;font-weight:600">HOME</div><div style="background:#0a1428;border:1px solid #4fb3ff;color:#4fb3ff;padding:3px 8px;border-radius:5px;font-size:7px">STATS</div><div style="background:#280a0a;border:1px solid #ff6b6b;color:#ff6b6b;padding:3px 8px;border-radius:5px;font-size:7px">ABOUT</div></div>`,
   },
   {
     id: "time", num: "05", name: "NTP Clock", level: "standard", size: "988 KB",
     desc: "นาฬิกาจริงจาก NTP — HH:MM + วินาที + วันที่",
-    preview: `<div style="color:#888;font-size:8px;margin-bottom:6px">Kru32 Clock</div><div style="font-size:36px;color:#ffd27f;font-weight:700;letter-spacing:-1px">14:32</div><div style="font-size:16px;color:#4fb3ff;margin:4px 0">05</div><div style="color:#aaa;font-size:9px">2026-07-05</div>`,
+    preview: `<div style="color:#888;font-size:8px;margin-bottom:6px">Kru32 Oracle Clock</div><div style="font-size:36px;color:#ffd27f;font-weight:700;letter-spacing:-1px">14:32</div><div style="font-size:16px;color:#4fb3ff;margin:4px 0">05</div><div style="color:#aaa;font-size:9px">2026-07-05</div>`,
   },
   {
     id: "http", num: "06", name: "WiFi Status", level: "standard", size: "1.1 MB",
@@ -90,16 +90,16 @@ export const LESSONS: Lesson[] = [
   {
     id: "dashboard", num: "14", name: "Brewing Dashboard", level: "advanced", size: "976 KB",
     desc: "Dashboard เต็มรูปแบบ — cards, progress, temp",
-    preview: `<div style="width:90%;text-align:left"><div style="color:#fff;font-size:9px;font-weight:600">Kru32 Brewing <span style="color:#0f7;border:1px solid #0f7;padding:1px 4px;border-radius:4px;font-size:7px">ACTIVE</span></div><div style="background:#0a1419;border:1px solid #1f3540;border-radius:6px;padding:6px 8px;margin-top:6px"><div style="color:#888;font-size:7px">Fermentation</div><div style="color:#ffd27f;font-size:13px;font-weight:600">Day 5/14</div><div style="width:100%;height:3px;background:#1f1f2f;border-radius:2px;margin-top:4px"><div style="width:36%;height:100%;background:#ffd27f;border-radius:2px"></div></div></div><div style="background:#0a1419;border:1px solid #1f3540;border-radius:6px;padding:6px 8px;margin-top:4px"><div style="color:#888;font-size:7px">Temperature</div><div style="color:#ff6b6b;font-size:13px;font-weight:600">22.5 C</div></div></div>`,
+    preview: `<div style="width:90%;text-align:left"><div style="color:#fff;font-size:9px;font-weight:600">Kru32 Oracle Brewing <span style="color:#0f7;border:1px solid #0f7;padding:1px 4px;border-radius:4px;font-size:7px">ACTIVE</span></div><div style="background:#0a1419;border:1px solid #1f3540;border-radius:6px;padding:6px 8px;margin-top:6px"><div style="color:#888;font-size:7px">Fermentation</div><div style="color:#ffd27f;font-size:13px;font-weight:600">Day 5/14</div><div style="width:100%;height:3px;background:#1f1f2f;border-radius:2px;margin-top:4px"><div style="width:36%;height:100%;background:#ffd27f;border-radius:2px"></div></div></div><div style="background:#0a1419;border:1px solid #1f3540;border-radius:6px;padding:6px 8px;margin-top:4px"><div style="color:#888;font-size:7px">Temperature</div><div style="color:#ff6b6b;font-size:13px;font-weight:600">22.5 C</div></div></div>`,
   },
   {
     id: "production", num: "15", name: "Production Ready", level: "advanced", size: "1.1 MB",
     desc: "OTA + safe mode + fallback AP พร้อม deploy",
-    preview: `<div style="color:#0f7;font-size:10px;font-weight:600;margin-bottom:8px">Production Status</div><div style="text-align:left;font-size:8px;line-height:2"><div><span style="color:#0f7">●</span> OTA enabled</div><div><span style="color:#0f7">●</span> Safe Mode: 5 attempts</div><div><span style="color:#ffd27f">●</span> Fallback AP: Kru32</div><div><span style="color:#0f7">●</span> Captive Portal</div></div>`,
+    preview: `<div style="color:#0f7;font-size:10px;font-weight:600;margin-bottom:8px">Production Status</div><div style="text-align:left;font-size:8px;line-height:2"><div><span style="color:#0f7">●</span> OTA enabled</div><div><span style="color:#0f7">●</span> Safe Mode: 5 attempts</div><div><span style="color:#ffd27f">●</span> Fallback AP: Kru32 Oracle</div><div><span style="color:#0f7">●</span> Captive Portal</div></div>`,
   },
   {
     id: "gif-animation", num: "16", name: "GIF Animation", level: "advanced", size: "848 KB",
     desc: "เล่น GIF หลายเฟรมด้วย animation: component",
-    preview: `<div style="color:#ffd27f;font-size:10px;margin-bottom:14px">Kru32 GIF animation</div><div class="kru-bounce" style="width:40px;height:40px;border-radius:50%;background:#4dc4ff"></div><div style="width:70%;height:2px;background:#283c50;margin-top:2px"></div>`,
+    preview: `<div style="color:#ffd27f;font-size:10px;margin-bottom:14px">Kru32 Oracle GIF animation</div><div class="kru-bounce" style="width:40px;height:40px;border-radius:50%;background:#4dc4ff"></div><div style="width:70%;height:2px;background:#283c50;margin-top:2px"></div>`,
   },
 ];
