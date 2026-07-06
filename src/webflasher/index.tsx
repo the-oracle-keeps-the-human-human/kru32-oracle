@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { LESSONS, LEVELS, type Lesson } from "./lessons";
 
@@ -15,6 +15,63 @@ declare global {
 
 const hasSerial = typeof navigator !== "undefined" && "serial" in navigator;
 
+function Starfield() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let raf = 0;
+    let stars: { x: number; y: number; r: number; p: number; s: number }[] = [];
+    const resize = () => {
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      const n = Math.floor((window.innerWidth * window.innerHeight) / 9000);
+      stars = Array.from({ length: n }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: (Math.random() * 1.1 + 0.3) * dpr,
+        p: Math.random() * Math.PI * 2,
+        s: 0.5 + Math.random() * 0.5,
+      }));
+    };
+    const draw = (t: number) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const st of stars) {
+        const twinkle = reduced ? 1 : 0.65 + 0.35 * Math.sin(t / 1400 + st.p);
+        ctx.globalAlpha = st.s * twinkle * 0.8;
+        ctx.fillStyle = "#cfe7ff";
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      if (!reduced) raf = requestAnimationFrame(draw);
+    };
+    // การ set canvas.width = ล้าง bitmap — ตอน reduced-motion ไม่มี rAF loop มาวาดซ้ำ
+    // เพราะฉะนั้น resize ต้องวาดใหม่เองเสมอ
+    const onResize = () => {
+      resize();
+      if (reduced) draw(0);
+    };
+    resize();
+    draw(0);
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+  return (
+    <canvas
+      ref={ref}
+      aria-hidden="true"
+      className="fixed inset-0 h-full w-full pointer-events-none"
+    />
+  );
+}
+
 function LessonItem({ lesson, selected, onSelect }: {
   lesson: Lesson;
   selected: boolean;
@@ -25,7 +82,7 @@ function LessonItem({ lesson, selected, onSelect }: {
       onClick={() => onSelect(lesson)}
       className={[
         "flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer border transition-all",
-        "bg-[#0f1822] hover:bg-[#0a1018] hover:border-[#4dc4ff4d]",
+        "bg-[#0f1822]/85 hover:bg-[#0a1018] hover:border-[#4dc4ff4d] hover:shadow-[0_0_16px_-8px_rgba(77,196,255,.6)]",
         selected
           ? "border-[#4dc4ff] bg-[#4dc4ff14]"
           : lesson.num === "01"
@@ -34,7 +91,7 @@ function LessonItem({ lesson, selected, onSelect }: {
       ].join(" ")}
     >
       <span className={[
-        "font-mono font-bold text-[11px] w-6 shrink-0",
+        "font-display font-bold text-[11px] w-6 shrink-0",
         selected ? "text-[#4dc4ff]" : lesson.num === "01" ? "text-[#4ae08a]" : "text-[#6f8ba0]",
       ].join(" ")}>{lesson.num}</span>
       <div className="min-w-0">
@@ -49,26 +106,33 @@ function LessonItem({ lesson, selected, onSelect }: {
 function DevicePreview({ lesson }: { lesson: Lesson | null }) {
   return (
     <div className="flex justify-center">
-      <div className="rounded-[22px] p-2.5 bg-gradient-to-b from-[#1c1e26] to-[#08090c] shadow-[0_30px_60px_-20px_rgba(0,0,0,.7),inset_0_1px_0_rgba(255,255,255,.06)]">
-        <div className="flex justify-center items-center gap-1.5 pb-1.5 pt-0.5">
-          <span className="w-9 h-[3px] rounded bg-white/10" />
-          <i className="w-1 h-1 rounded-full bg-white/15" />
-          <span className="w-9 h-[3px] rounded bg-white/10" />
-        </div>
-        <div className="w-[240px] h-[360px] bg-black rounded-[10px] overflow-hidden flex flex-col items-center justify-center p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,.04)]">
-          {lesson ? (
-            <div
-              className="w-full h-full flex flex-col items-center justify-center text-center font-mono text-[11px] leading-snug"
-              dangerouslySetInnerHTML={{ __html: lesson.preview }}
-            />
-          ) : (
-            <div className="text-[#6f8ba0] text-[10px] text-center font-mono">
-              เลือกบทเรียน<br />เพื่อดู preview
-            </div>
-          )}
-        </div>
-        <div className="text-center mt-1.5 font-mono text-[8px] tracking-[.15em] uppercase text-[#7e8794]">
-          Guition JC3248W535 · AXS15231 QSPI
+      <div className="relative">
+        <span aria-hidden="true" className="absolute -top-2 -left-2 w-5 h-5 border-t-2 border-l-2 border-[#4dc4ff59] rounded-tl-sm" />
+        <span aria-hidden="true" className="absolute -top-2 -right-2 w-5 h-5 border-t-2 border-r-2 border-[#4dc4ff59] rounded-tr-sm" />
+        <span aria-hidden="true" className="absolute -bottom-2 -left-2 w-5 h-5 border-b-2 border-l-2 border-[#4dc4ff59] rounded-bl-sm" />
+        <span aria-hidden="true" className="absolute -bottom-2 -right-2 w-5 h-5 border-b-2 border-r-2 border-[#4dc4ff59] rounded-br-sm" />
+        <div className="rounded-[22px] p-2.5 bg-gradient-to-b from-[#131a2c] to-[#05070d] border border-[#22304d] shadow-[0_30px_60px_-20px_rgba(0,0,0,.8),0_0_70px_-18px_rgba(77,196,255,.3),inset_0_1px_0_rgba(255,255,255,.06)]">
+          <div className="flex justify-center items-center gap-1.5 pb-1.5 pt-0.5">
+            <span className="w-9 h-[3px] rounded bg-white/10" />
+            <i className="w-1 h-1 rounded-full bg-white/15" />
+            <span className="w-9 h-[3px] rounded bg-white/10" />
+          </div>
+          <div className="relative w-[240px] h-[360px] bg-black rounded-[10px] overflow-hidden flex flex-col items-center justify-center p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,.04)]">
+            {lesson ? (
+              <div
+                className="w-full h-full flex flex-col items-center justify-center text-center font-mono text-[11px] leading-snug"
+                dangerouslySetInnerHTML={{ __html: lesson.preview }}
+              />
+            ) : (
+              <div className="text-[#6f8ba0] text-[10px] text-center font-mono">
+                เลือกบทเรียน<br />เพื่อดู preview
+              </div>
+            )}
+            <div aria-hidden="true" className="kru-scan absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-transparent via-[#4dc4ff1a] to-transparent pointer-events-none" />
+          </div>
+          <div className="text-center mt-1.5 font-display text-[8px] tracking-[.15em] uppercase text-[#7e8794]">
+            Guition JC3248W535 · AXS15231 QSPI
+          </div>
         </div>
       </div>
     </div>
@@ -90,7 +154,7 @@ function FlashDock({ lesson }: { lesson: Lesson | null }) {
         <esp-web-install-button manifest={`manifests/${lesson.id}.json`}>
           <button
             slot="activate"
-            className="mt-3 px-9 py-3 rounded-[10px] font-bold text-sm tracking-wide text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] hover:-translate-y-px hover:shadow-[0_6px_20px_-4px_rgba(77,196,255,.35)] transition-all cursor-pointer border-0"
+            className="kru-pulse mt-3 px-9 py-3 rounded-[10px] font-display font-bold text-sm tracking-wider text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] hover:-translate-y-px transition-all cursor-pointer border-0"
           >
             ⚡ Quick Flash
           </button>
@@ -98,7 +162,7 @@ function FlashDock({ lesson }: { lesson: Lesson | null }) {
       ) : (
         <button
           disabled
-          className="mt-3 px-9 py-3 rounded-[10px] font-bold text-sm text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] opacity-30 cursor-not-allowed border-0"
+          className="mt-3 px-9 py-3 rounded-[10px] font-display font-bold text-sm tracking-wider text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] opacity-30 cursor-not-allowed border-0"
         >
           ⚡ Quick Flash
         </button>
@@ -126,14 +190,21 @@ function Specs() {
     ["USB", "303A:1001"],
   ];
   return (
-    <dl className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px] px-3.5 py-3 bg-[#0f1822] rounded-lg">
-      {rows.map(([k, v]) => (
-        <React.Fragment key={k}>
-          <dt className="text-[#6f8ba0]">{k}</dt>
-          <dd className="text-[#a8c0d0] font-medium">{v}</dd>
-        </React.Fragment>
-      ))}
-    </dl>
+    <div className="px-3.5 py-3 bg-[#0f1822]/85 border border-[#1a2838] rounded-lg">
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className="font-display font-semibold text-[9px] tracking-[.25em] uppercase text-[#4dc4ff]">Telemetry</span>
+        <span aria-hidden="true" className="flex-1 h-px bg-[#1a2838]" />
+        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-[#4ae08a] shadow-[0_0_6px_rgba(74,224,138,.8)]" />
+      </div>
+      <dl className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px]">
+        {rows.map(([k, v]) => (
+          <React.Fragment key={k}>
+            <dt className="text-[#6f8ba0]">{k}</dt>
+            <dd className="text-[#a8c0d0] font-medium font-mono text-[10.5px]">{v}</dd>
+          </React.Fragment>
+        ))}
+      </dl>
+    </div>
   );
 }
 
@@ -141,12 +212,16 @@ function App() {
   const [selected, setSelected] = useState<Lesson | null>(null);
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 py-8 pb-12">
+    <>
+      <Starfield />
+      <div className="relative max-w-[1200px] mx-auto px-6 py-8 pb-12">
       <header className="text-center mb-8">
-        <div className="font-mono font-semibold text-[9.5px] tracking-[.22em] uppercase text-[#4dc4ff] mb-1.5">
-          ESP32 × Display — 16 Lessons
+        <div className="font-display font-semibold text-[9.5px] tracking-[.22em] uppercase text-[#4dc4ff] mb-1.5">
+          ◢ ESP32 × Display — 16 Lessons ◣
         </div>
-        <h1 className="text-2xl font-bold text-[#e8f2fa]">Kru32 Oracle Web Flasher</h1>
+        <h1 className="font-display text-2xl font-bold tracking-wide text-[#e8f2fa] [text-shadow:0_0_28px_rgba(77,196,255,.4)]">
+          Kru32 Oracle Web Flasher
+        </h1>
         <p className="text-[#6f8ba0] text-[13px] mt-1">
           เลือกบท → ดู preview → เสียบ USB → Quick Flash ·{" "}
           <a
@@ -167,7 +242,7 @@ function App() {
             if (!group.length) return null;
             return (
               <div key={lv.key}>
-                <div className={`font-mono font-semibold text-[9.5px] tracking-[.12em] uppercase pb-1.5 border-b ${lv.color}`}>
+                <div className={`font-display font-semibold text-[9.5px] tracking-[.12em] uppercase pb-1.5 border-b ${lv.color}`}>
                   {lv.label}
                 </div>
                 <div className="flex flex-col gap-1.5 mt-2">
@@ -200,7 +275,8 @@ function App() {
         </a>{" "}
         · กลั่นจาก 41.6 ชม. 186 commits และจอจริง 8 ตัวของ esp32-oracle
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
 

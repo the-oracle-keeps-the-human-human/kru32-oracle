@@ -20,6 +20,8 @@ Success: จำนวนคนที่ flash บท 01 สำเร็จแล
 
 ครูใจดี · ตรงไปตรงมา · ผ่านสนามจริง — น้ำเสียงคือครูที่เคยเจอ trap มาแล้วทุกตัวและบอกทางลัดให้ ไม่ใช่ marketing landing ไม่ hype ทุกตัวเลขบนหน้าเว็บเป็นค่าจริง (ขนาดไฟล์, pin, ชั่วโมงที่ใช้)
 
+โหมดภาพ (user กำหนด 2026-07-06): **space / mission-control** — starfield canvas + nebula, device เป็น HUD console, display font = Chakra Petch (Thai techno), glow เดียวของหน้าอยู่ที่ปุ่ม Quick Flash — ความล้ำอยู่ที่ atmosphere layer เท่านั้น ห้ามแตะ readability ของ instruction ภาษาไทย
+
 ## Anti-references
 
 - Landing page SaaS ทั่วไป (hero ยักษ์, gradient text, metric โชว์) — นี่คือ tool ไม่ใช่ ad
