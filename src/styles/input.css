@@ -1,0 +1,50 @@
+@import "tailwindcss" source(none);
+/* scan Astro pages/layouts + React islands + lesson data (LEVELS.color arbitrary classes) */
+@source "../components/";
+@source "../pages/";
+@source "../layouts/";
+@source "../data/";
+
+@theme {
+  --font-display: "Chakra Petch", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+  background: #030409;
+  color: #a8c0d0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+/* nebula — แสงไกลๆ สองดวง alpha ต่ำ ไม่กินตัว contrast ตัวหนังสือ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 40% at 82% 8%, rgba(123, 92, 255, 0.13), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 8% 85%, rgba(77, 216, 255, 0.09), transparent 70%),
+    radial-gradient(ellipse 35% 25% at 45% 45%, rgba(77, 196, 255, 0.04), transparent 70%);
+}
+
+/* scanline กวาดช้าๆ บนจอ device */
+@keyframes kru-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(360px); }
+}
+.kru-scan {
+  animation: kru-scan 5s cubic-bezier(0.25, 0, 0.75, 1) infinite;
+}
+
+/* engine-idle pulse ที่ปุ่ม Flash — จุดสว่างเดียวของหน้า */
+@keyframes kru-pulse {
+  0%, 100% { box-shadow: 0 0 18px -2px rgba(77, 216, 255, 0.35), 0 0 50px -8px rgba(77, 216, 255, 0.18); }
+  50% { box-shadow: 0 0 26px 0 rgba(77, 216, 255, 0.55), 0 0 70px -6px rgba(123, 92, 255, 0.3); }
+}
+.kru-pulse { animation: kru-pulse 2.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .kru-scan, .kru-pulse { animation: none; }
+  .kru-scan { display: none; }
+}

@@ -1,0 +1,37 @@
+---
+import "../styles/input.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Kru32 Oracle — ESP32 Display Course Flasher",
+  description = "Flash ESP32 JC3248W535 display lessons จากเบราว์เซอร์ — 16 บทเรียน ESPHome คอมไพล์ผ่านจริง",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- esp-web-tools: defines <esp-web-install-button>; client-side only, safe under client:only island -->
+    <script
+      type="module"
+      src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"
+    ></script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

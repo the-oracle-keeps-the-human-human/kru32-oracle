@@ -6,6 +6,10 @@ build/
 # Node
 node_modules/
 
+# Astro build output (CI rebuilds; docs/ stays until cutover S8)
+dist/
+.astro/
+
 # Secrets (never commit)
 secrets.yaml
 

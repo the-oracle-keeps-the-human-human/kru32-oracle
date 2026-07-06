@@ -1,0 +1,10 @@
+---
+import Base from "../layouts/Base.astro";
+import App from "../components/App.tsx";
+---
+
+<Base>
+  <!-- client:only="react" → ทั้ง tree เรนเดอร์ฝั่ง client ล้วน ไม่มี SSR
+       จึงไม่ crash จาก document/navigator/customElements (DNA Mechanic) -->
+  <App client:only="react" />
+</Base>
