@@ -81,22 +81,30 @@ function LessonItem({ lesson, selected, onSelect }: {
     <div
       onClick={() => onSelect(lesson)}
       className={[
-        "flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer border transition-all",
-        "bg-[#0f1822]/85 hover:bg-[#0a1018] hover:border-[#4dc4ff4d] hover:shadow-[0_0_16px_-8px_rgba(77,196,255,.6)]",
+        "flex items-center gap-3 p-2.5 rounded-lg cursor-pointer border transition-all",
+        "bg-[#101b29]/90 hover:bg-[#0c1420] hover:border-[#4dc4ff4d] hover:shadow-[0_0_16px_-8px_rgba(77,196,255,.6)]",
         selected
           ? "border-[#4dc4ff] bg-[#4dc4ff14]"
           : lesson.num === "01"
             ? "border-[#4ae08a]"
-            : "border-[#1a2838]",
+            : "border-[#223349]",
       ].join(" ")}
     >
       <span className={[
         "font-display font-bold text-[11px] w-6 shrink-0",
         selected ? "text-[#4dc4ff]" : lesson.num === "01" ? "text-[#4ae08a]" : "text-[#6f8ba0]",
       ].join(" ")}>{lesson.num}</span>
+      <img
+        src={`previews/${lesson.id}.png`}
+        alt={`ตัวอย่างหน้าจอบท ${lesson.num} ${lesson.name}`}
+        width={56}
+        height={84}
+        loading="lazy"
+        className="w-14 h-[84px] shrink-0 rounded-md border border-[#223349] bg-black object-cover"
+      />
       <div className="min-w-0">
-        <div className="text-[13px] font-medium text-[#e8f2fa]">{lesson.name}</div>
-        <div className="text-[11px] text-[#6f8ba0]">{lesson.desc}</div>
+        <div className="text-sm font-medium text-[#e8f2fa]">{lesson.name}</div>
+        <div className="text-[11px] text-[#6f8ba0] mt-0.5">{lesson.desc}</div>
       </div>
       <span className="font-mono text-[10px] text-[#6f8ba0] ml-auto shrink-0">{lesson.size}</span>
     </div>
@@ -245,7 +253,7 @@ function App() {
                 <div className={`font-display font-semibold text-[9.5px] tracking-[.12em] uppercase pb-1.5 border-b ${lv.color}`}>
                   {lv.label}
                 </div>
-                <div className="flex flex-col gap-1.5 mt-2">
+                <div className="flex flex-col gap-2 mt-2">
                   {group.map((l) => (
                     <LessonItem key={l.id} lesson={l} selected={selected?.id === l.id} onSelect={setSelected} />
                   ))}
