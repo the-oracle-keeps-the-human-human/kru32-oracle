@@ -99,19 +99,19 @@ font:
   - file: "gfonts://Roboto"
     id: font_title
     size: 24
-    glyphs: "KruOaclePhd 32"
+    glyphsets: [GF_Latin_Core]
   - file: "gfonts://Roboto"
     id: font_label
     size: 14
-    glyphs: "WiFSatusConecdIPMARS:UpmDhBginlNo .0123456789-"
+    glyphsets: [GF_Latin_Core]
   - file: "gfonts://Roboto"
     id: font_value
     size: 20
-    glyphs: "0123456789.:ABCDEFabcdef-NoWiFiconectdg "
+    glyphsets: [GF_Latin_Core]
   - file: "gfonts://Roboto"
     id: font_status
     size: 16
-    glyphs: "ReadyOKConectdig. "
+    glyphsets: [GF_Latin_Core]
 
 interval:
   - interval: 5s
