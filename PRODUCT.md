@@ -20,7 +20,7 @@ Success: จำนวนคนที่ flash บท 01 สำเร็จแล
 
 ครูใจดี · ตรงไปตรงมา · ผ่านสนามจริง — น้ำเสียงคือครูที่เคยเจอ trap มาแล้วทุกตัวและบอกทางลัดให้ ไม่ใช่ marketing landing ไม่ hype ทุกตัวเลขบนหน้าเว็บเป็นค่าจริง (ขนาดไฟล์, pin, ชั่วโมงที่ใช้)
 
-โหมดภาพ (user กำหนด 2026-07-06): **space / mission-control** — starfield canvas + nebula, device เป็น HUD console, display font = Chakra Petch (Thai techno), glow เดียวของหน้าอยู่ที่ปุ่ม Quick Flash — ความล้ำอยู่ที่ atmosphere layer เท่านั้น ห้ามแตะ readability ของ instruction ภาษาไทย
+โหมดภาพ (user กำหนด 2026-07-06 → **pivot เป็น Van Gogh**): **painterly / Starry Night** — flow-field canvas หมุนวนรอบ vortex 3 ดวง ทิ้งหางพู่กัน (แทน starfield), palette cobalt `#0b1b39` + chrome-yellow `#f6c544` (แทน cyan-on-black), impasto grain (SVG turbulence overlay), หัวเรื่อง Fraunces serif + ตัวอ่าน IBM Plex Sans Thai. **Layout = grid gallery** (การ์ด = ภาพวาดใส่กรอบทอง) → คลิกเปิด lightbox จอใหญ่ + Flash — เลือกแบบนี้เพราะจะเพิ่มแอปอีกเยอะ ตารางย่อได้ไม่ยืดหน้า. กติกา: swirl อยู่ margin/hero เท่านั้น ตัวหนังสือทุกตัวอยู่บนการ์ดทึบ (WCAG), chrome-yellow ใช้กับ ≥18px เท่านั้น ตัวอ่านเล็ก = cream `#e8e2d0`
 
 ## Anti-references
 

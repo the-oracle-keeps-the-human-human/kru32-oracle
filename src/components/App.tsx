@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { LESSONS, LEVELS, type Lesson } from "../data/lessons";
 
-// Astro/Vite injects the Pages base path here (e.g. "/kru32-oracle/").
-// Every static asset (preview PNG, manifest JSON) must go through this or it
-// 404s once the app is served from a sub-path — DNA Mechanic/Skeptic verified.
+// Astro/Vite injects the Pages base path (e.g. "/kru32-oracle/").
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const asset = (p: string) => `${BASE}/${p}`;
 
@@ -20,7 +18,10 @@ declare global {
 
 const hasSerial = typeof navigator !== "undefined" && "serial" in navigator;
 
-function Starfield() {
+/* ── Starry Night flow-field ──
+   อนุภาคโคจรรอบ vortex 3 ดวง ทิ้งหางพู่กันจาง ๆ (impasto layering ผ่าน alpha-fade)
+   ไม่ใช่จุดดาวสุ่ม — เป็นการหมุนวนแบบภาพวาด */
+function FlowField() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current;
@@ -29,284 +30,245 @@ function Starfield() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let raf = 0;
-    let stars: { x: number; y: number; r: number; p: number; s: number }[] = [];
-    const resize = () => {
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      const n = Math.floor((window.innerWidth * window.innerHeight) / 9000);
-      stars = Array.from({ length: n }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: (Math.random() * 1.1 + 0.3) * dpr,
-        p: Math.random() * Math.PI * 2,
-        s: 0.5 + Math.random() * 0.5,
-      }));
+    let W = 0, H = 0;
+    let vortices: { x: number; y: number; s: number }[] = [];
+    let parts: { x: number; y: number; px: number; py: number; c: string }[] = [];
+    const strokes = ["rgba(246,197,68,", "rgba(207,224,255,", "rgba(120,170,255,", "rgba(60,120,90,"];
+
+    const seed = () => {
+      W = canvas.width = window.innerWidth * dpr;
+      H = canvas.height = window.innerHeight * dpr;
+      vortices = [
+        { x: W * 0.78, y: H * 0.22, s: 1 },
+        { x: W * 0.15, y: H * 0.7, s: -1 },
+        { x: W * 0.45, y: H * 0.4, s: 0.6 },
+      ];
+      const n = Math.min(420, Math.floor((window.innerWidth * window.innerHeight) / 4200));
+      parts = Array.from({ length: n }, () => {
+        const x = Math.random() * W, y = Math.random() * H;
+        return { x, y, px: x, py: y, c: strokes[(Math.random() * strokes.length) | 0] };
+      });
+      // เริ่มด้วยพื้น cobalt เต็มจอ
+      ctx.fillStyle = "#0b1b39";
+      ctx.fillRect(0, 0, W, H);
     };
-    const draw = (t: number) => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const st of stars) {
-        const twinkle = reduced ? 1 : 0.65 + 0.35 * Math.sin(t / 1400 + st.p);
-        ctx.globalAlpha = st.s * twinkle * 0.8;
-        ctx.fillStyle = "#cfe7ff";
+
+    const step = () => {
+      // ทับด้วย cobalt โปร่งบาง → หางพู่กันเก่าจางลง = impasto
+      ctx.fillStyle = "rgba(11,27,57,0.055)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.lineWidth = 1.15 * dpr;
+      for (const p of parts) {
+        let vx = 0, vy = 0;
+        for (const v of vortices) {
+          const dx = p.x - v.x, dy = p.y - v.y;
+          const d2 = dx * dx + dy * dy + 9000 * dpr;
+          const f = (v.s * 5200 * dpr) / d2;
+          // ตั้งฉาก = หมุนวน + ดูดเข้าเล็กน้อย
+          vx += -dy * f - dx * 0.00006;
+          vy += dx * f - dy * 0.00006;
+        }
+        p.px = p.x; p.py = p.y;
+        p.x += vx; p.y += vy;
+        if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) {
+          p.x = Math.random() * W; p.y = Math.random() * H; p.px = p.x; p.py = p.y;
+        }
+        ctx.strokeStyle = p.c + "0.5)";
         ctx.beginPath();
-        ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(p.px, p.py);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
       }
-      if (!reduced) raf = requestAnimationFrame(draw);
+      raf = requestAnimationFrame(step);
     };
-    // การ set canvas.width = ล้าง bitmap — ตอน reduced-motion ไม่มี rAF loop มาวาดซ้ำ
-    // เพราะฉะนั้น resize ต้องวาดใหม่เองเสมอ
-    const onResize = () => {
-      resize();
-      if (reduced) draw(0);
+
+    const drawStatic = () => {
+      // reduced-motion: เฟรมนิ่งสวย ๆ — วนหลายรอบให้เกิดลายวน
+      for (let i = 0; i < 260; i++) step_noRAF();
     };
-    resize();
-    draw(0);
+    const step_noRAF = () => {
+      ctx.lineWidth = 1.1 * dpr;
+      for (const p of parts) {
+        let vx = 0, vy = 0;
+        for (const v of vortices) {
+          const dx = p.x - v.x, dy = p.y - v.y;
+          const d2 = dx * dx + dy * dy + 9000 * dpr;
+          const f = (v.s * 5200 * dpr) / d2;
+          vx += -dy * f - dx * 0.00006;
+          vy += dx * f - dy * 0.00006;
+        }
+        p.px = p.x; p.py = p.y; p.x += vx; p.y += vy;
+        if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) { p.x = Math.random() * W; p.y = Math.random() * H; p.px = p.x; p.py = p.y; }
+        ctx.strokeStyle = p.c + "0.14)";
+        ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
+      }
+    };
+
+    seed();
+    if (reduced) drawStatic();
+    else raf = requestAnimationFrame(step);
+    const onResize = () => { seed(); if (reduced) drawStatic(); };
     window.addEventListener("resize", onResize);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", onResize);
-    };
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
   }, []);
+  return <canvas ref={ref} aria-hidden="true" className="fixed inset-0 h-full w-full pointer-events-none opacity-90" />;
+}
+
+/* การ์ดในแกลเลอรี = ภาพวาดใส่กรอบ hover ยกขึ้น+เรืองแสง */
+function GalleryCard({ lesson, onOpen }: { lesson: Lesson; onOpen: (l: Lesson) => void }) {
+  const start = lesson.num === "01";
   return (
-    <canvas
-      ref={ref}
-      aria-hidden="true"
-      className="fixed inset-0 h-full w-full pointer-events-none"
-    />
+    <button
+      onClick={() => onOpen(lesson)}
+      className="group relative text-left rounded-[10px] p-[3px] transition-all duration-300 cursor-pointer
+        bg-gradient-to-b from-[#8a6a2e] to-[#3a2c14] hover:-translate-y-1.5
+        shadow-[0_10px_30px_-14px_rgba(0,0,0,.8)] hover:shadow-[0_16px_40px_-12px_rgba(246,197,68,.4)]
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f6c544]"
+    >
+      <div className="rounded-[8px] overflow-hidden bg-black relative">
+        <img
+          src={asset(`previews/${lesson.id}.png`)}
+          alt={`หน้าจอบท ${lesson.num} ${lesson.name}`}
+          width={240}
+          height={360}
+          loading="lazy"
+          className="w-full aspect-[2/3] object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+        />
+        {/* ป้ายชื่อ overlay ล่าง — พื้นทึบ อ่านได้เสมอ */}
+        <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-[#08152e]/95 via-[#08152e]/80 to-transparent pt-8">
+          <div className="flex items-baseline gap-1.5">
+            <span className={`font-display font-semibold text-[11px] ${start ? "text-[#7fe0a6]" : "text-[#f6c544]"}`}>{lesson.num}</span>
+            <span className="font-display font-semibold text-[13px] text-[#f4efe0] truncate">{lesson.name}</span>
+          </div>
+          <div className="text-[10px] text-[#c9bfa6] truncate mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {lesson.desc}
+          </div>
+        </div>
+        {start && (
+          <span className="absolute top-2 left-2 font-display text-[9px] font-semibold tracking-wide px-2 py-0.5 rounded-full bg-[#7fe0a6] text-[#08152e]">
+            เริ่มที่นี่
+          </span>
+        )}
+        <span className="absolute top-2 right-2 font-mono text-[9px] px-1.5 py-0.5 rounded bg-black/55 text-[#c9bfa6]">{lesson.size}</span>
+      </div>
+    </button>
   );
 }
 
-function LessonItem({ lesson, selected, onSelect }: {
-  lesson: Lesson;
-  selected: boolean;
-  onSelect: (l: Lesson) => void;
-}) {
+/* Lightbox — คลิกการ์ดแล้วเปิดจอใหญ่ + Flash (แทน sidebar แถวยาว) */
+function Lightbox({ lesson, onClose }: { lesson: Lesson; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [onClose]);
+
   return (
     <div
-      onClick={() => onSelect(lesson)}
-      className={[
-        "flex items-center gap-3 p-2.5 rounded-lg cursor-pointer border transition-all",
-        "bg-[#101b29]/90 hover:bg-[#0c1420] hover:border-[#4dc4ff4d] hover:shadow-[0_0_16px_-8px_rgba(77,196,255,.6)]",
-        selected
-          ? "border-[#4dc4ff] bg-[#4dc4ff14]"
-          : lesson.num === "01"
-            ? "border-[#4ae08a]"
-            : "border-[#223349]",
-      ].join(" ")}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#050d1e]/80 backdrop-blur-md"
     >
-      <span className={[
-        "font-display font-bold text-[11px] w-6 shrink-0",
-        selected ? "text-[#4dc4ff]" : lesson.num === "01" ? "text-[#4ae08a]" : "text-[#6f8ba0]",
-      ].join(" ")}>{lesson.num}</span>
-      <img
-        src={asset(`previews/${lesson.id}.png`)}
-        alt={`ตัวอย่างหน้าจอบท ${lesson.num} ${lesson.name}`}
-        width={56}
-        height={84}
-        loading="lazy"
-        className="w-14 h-[84px] shrink-0 rounded-md border border-[#223349] bg-black object-cover"
-      />
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-[#e8f2fa]">{lesson.name}</div>
-        <div className="text-[11px] text-[#6f8ba0] mt-0.5">{lesson.desc}</div>
-      </div>
-      <a
-        href={asset(`lessons/${lesson.id}/`)}
+      <div
         onClick={(e) => e.stopPropagation()}
-        className="ml-auto shrink-0 flex flex-col items-end gap-0.5 text-right"
+        className="relative w-full max-w-[560px] max-h-[92vh] overflow-y-auto rounded-2xl border border-[#2d4a2f]
+          bg-[#0e2145]/95 shadow-[0_40px_90px_-24px_rgba(0,0,0,.85)] p-6 flex flex-col items-center"
       >
-        <span className="font-mono text-[10px] text-[#6f8ba0]">{lesson.size}</span>
-        <span className="font-display text-[9px] text-[#4dc4ff] hover:underline">ดู YAML →</span>
-      </a>
-    </div>
-  );
-}
-
-function DevicePreview({ lesson }: { lesson: Lesson | null }) {
-  return (
-    <div className="flex justify-center">
-      <div className="relative">
-        <span aria-hidden="true" className="absolute -top-2 -left-2 w-5 h-5 border-t-2 border-l-2 border-[#4dc4ff59] rounded-tl-sm" />
-        <span aria-hidden="true" className="absolute -top-2 -right-2 w-5 h-5 border-t-2 border-r-2 border-[#4dc4ff59] rounded-tr-sm" />
-        <span aria-hidden="true" className="absolute -bottom-2 -left-2 w-5 h-5 border-b-2 border-l-2 border-[#4dc4ff59] rounded-bl-sm" />
-        <span aria-hidden="true" className="absolute -bottom-2 -right-2 w-5 h-5 border-b-2 border-r-2 border-[#4dc4ff59] rounded-br-sm" />
-        <div className="rounded-[22px] p-2.5 bg-gradient-to-b from-[#131a2c] to-[#05070d] border border-[#22304d] shadow-[0_30px_60px_-20px_rgba(0,0,0,.8),0_0_70px_-18px_rgba(77,196,255,.3),inset_0_1px_0_rgba(255,255,255,.06)]">
-          <div className="flex justify-center items-center gap-1.5 pb-1.5 pt-0.5">
-            <span className="w-9 h-[3px] rounded bg-white/10" />
-            <i className="w-1 h-1 rounded-full bg-white/15" />
-            <span className="w-9 h-[3px] rounded bg-white/10" />
-          </div>
-          <div className="relative w-[240px] h-[360px] bg-black rounded-[10px] overflow-hidden flex flex-col items-center justify-center shadow-[inset_0_0_0_1px_rgba(255,255,255,.04)]">
-            {lesson ? (
-              <img
-                src={asset(`previews/${lesson.id}.png`)}
-                alt={`หน้าจอบท ${lesson.num} ${lesson.name}`}
-                width={240}
-                height={360}
-                className="absolute inset-0 w-full h-full"
-              />
-            ) : (
-              <div className="text-[#6f8ba0] text-[10px] text-center font-mono">
-                เลือกบทเรียน<br />เพื่อดู preview
-              </div>
-            )}
-            <div aria-hidden="true" className="kru-scan absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-transparent via-[#4dc4ff1a] to-transparent pointer-events-none" />
-          </div>
-          <div className="text-center mt-1.5 font-display text-[8px] tracking-[.15em] uppercase text-[#7e8794]">
-            Guition JC3248W535 · AXS15231 QSPI
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FlashDock({ lesson }: { lesson: Lesson | null }) {
-  return (
-    <div className="flex flex-col items-center mt-4">
-      <div className="text-center">
-        <div className="font-semibold text-[#4dc4ff] text-sm">
-          {lesson ? `${lesson.num} — ${lesson.name}` : "ยังไม่ได้เลือกบท"}
-        </div>
-        <div className="font-mono text-[10px] text-[#6f8ba0] mt-0.5">
-          {lesson ? `${lesson.size} · JC3248W535` : "JC3248W535 · 320×480"}
-        </div>
-      </div>
-      {hasSerial && lesson ? (
-        <esp-web-install-button manifest={asset(`manifests/${lesson.id}.json`)}>
-          <button
-            slot="activate"
-            className="kru-pulse mt-3 px-9 py-3 rounded-[10px] font-display font-bold text-sm tracking-wider text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] hover:-translate-y-px transition-all cursor-pointer border-0"
-          >
-            ⚡ Quick Flash
-          </button>
-        </esp-web-install-button>
-      ) : (
         <button
-          disabled
-          className="mt-3 px-9 py-3 rounded-[10px] font-display font-bold text-sm tracking-wider text-[#060a0f] bg-gradient-to-br from-[#4dc4ff] to-[#2a9fe8] opacity-30 cursor-not-allowed border-0"
-        >
-          ⚡ Quick Flash
-        </button>
-      )}
-      {!hasSerial && (
-        <div className="mt-2 text-[11px] text-[#ff6050] text-center">
-          เบราว์เซอร์นี้ไม่รองรับ Web Serial — ใช้ Chrome/Edge บนคอมพิวเตอร์
-        </div>
-      )}
-      <div className="mt-3 text-[10px] text-[#6f8ba0] text-center leading-relaxed">
-        ไฟล์เป็น .factory.bin (รวม bootloader + partition) · เสียบ USB-C พอร์ต native<br />
-        ถ้าไม่เจอบอร์ด: กด BOOT ค้าง แตะ RESET · ใช้เวลา ~30 วินาที
-      </div>
-    </div>
-  );
-}
+          onClick={onClose}
+          aria-label="ปิด"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full grid place-items-center text-[#c9bfa6] hover:text-[#f6c544] hover:bg-white/5 transition-colors"
+        >✕</button>
 
-function Specs() {
-  const rows: [string, string][] = [
-    ["Board", "JC3248W535"],
-    ["MCU", "ESP32-S3"],
-    ["Display", "AXS15231B QSPI"],
-    ["Res", "320×480"],
-    ["Touch", "AXS15231 I2C"],
-    ["USB", "303A:1001"],
-  ];
-  return (
-    <div className="px-3.5 py-3 bg-[#0f1822]/85 border border-[#1a2838] rounded-lg">
-      <div className="flex items-center gap-2 mb-2.5">
-        <span className="font-display font-semibold text-[9px] tracking-[.25em] uppercase text-[#4dc4ff]">Telemetry</span>
-        <span aria-hidden="true" className="flex-1 h-px bg-[#1a2838]" />
-        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-[#4ae08a] shadow-[0_0_6px_rgba(74,224,138,.8)]" />
+        {/* จอในกรอบภาพวาด */}
+        <div className="rounded-[20px] p-2.5 bg-gradient-to-b from-[#8a6a2e] to-[#2a2012] shadow-[0_20px_50px_-18px_rgba(0,0,0,.8),0_0_60px_-14px_rgba(246,197,68,.3)]">
+          <div className="relative w-[228px] h-[342px] bg-black rounded-[11px] overflow-hidden">
+            <img src={asset(`previews/${lesson.id}.png`)} alt={`หน้าจอบท ${lesson.num} ${lesson.name}`} width={228} height={342} className="absolute inset-0 w-full h-full" />
+            <div aria-hidden="true" className="kru-scan absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-transparent via-[#f6c5441a] to-transparent pointer-events-none" />
+          </div>
+        </div>
+
+        <div className="text-center mt-4">
+          <div className="font-display text-[10px] tracking-[.2em] uppercase text-[#f6c544]">บทที่ {lesson.num} · {lesson.level}</div>
+          <h2 className="font-display text-xl font-bold text-[#f4efe0] mt-0.5">{lesson.name}</h2>
+          <p className="text-[#c9bfa6] text-[13px] mt-1">{lesson.desc}</p>
+          <div className="font-mono text-[10px] text-[#8a9bbd] mt-1">{lesson.size} · JC3248W535</div>
+        </div>
+
+        {hasSerial ? (
+          <esp-web-install-button manifest={asset(`manifests/${lesson.id}.json`)}>
+            <button slot="activate" className="kru-pulse mt-4 px-9 py-3 rounded-[10px] font-display font-bold text-sm tracking-wide text-[#1a1204] bg-gradient-to-br from-[#f6c544] to-[#e0a838] hover:-translate-y-px transition-transform cursor-pointer border-0">
+              ⚡ Quick Flash
+            </button>
+          </esp-web-install-button>
+        ) : (
+          <div className="mt-4 text-[11px] text-[#ff8a6b] text-center">
+            เบราว์เซอร์นี้ flash ไม่ได้ — ใช้ Chrome/Edge บนคอมพิวเตอร์
+          </div>
+        )}
+
+        <div className="mt-3 flex items-center gap-4 text-[11px]">
+          <a href={asset(`lessons/${lesson.id}/`)} className="font-display text-[#f6c544] hover:underline">ดู YAML เต็ม →</a>
+        </div>
+        <div className="mt-3 text-[10px] text-[#8a9bbd] text-center leading-relaxed">
+          .factory.bin (bootloader + partition) · เสียบ USB-C พอร์ต native · ~30 วินาที
+        </div>
       </div>
-      <dl className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px]">
-        {rows.map(([k, v]) => (
-          <React.Fragment key={k}>
-            <dt className="text-[#6f8ba0]">{k}</dt>
-            <dd className="text-[#a8c0d0] font-medium font-mono text-[10.5px]">{v}</dd>
-          </React.Fragment>
-        ))}
-      </dl>
     </div>
   );
 }
 
 export default function App({ initialId }: { initialId?: string }) {
-  const [selected, setSelected] = useState<Lesson | null>(
+  const [open, setOpen] = useState<Lesson | null>(
     initialId ? LESSONS.find((l) => l.id === initialId) ?? null : null
   );
 
   return (
     <>
-      <Starfield />
-      <div className="relative max-w-[1200px] mx-auto px-6 py-8 pb-12">
-        <header className="text-center mb-8">
-          <div className="font-display font-semibold text-[9.5px] tracking-[.22em] uppercase text-[#4dc4ff] mb-1.5">
-            ◢ ESP32 × Display — 16 Lessons ◣
-          </div>
-          <h1 className="font-display text-2xl font-bold tracking-wide text-[#e8f2fa] [text-shadow:0_0_28px_rgba(77,196,255,.4)]">
-            Kru32 Oracle Web Flasher
+      <FlowField />
+      <div className="relative max-w-[1160px] mx-auto px-6 py-10 pb-16">
+        <header className="text-center mb-9">
+          <div className="font-display italic text-[13px] text-[#f6c544] mb-1">Kru32 Oracle</div>
+          <h1 className="font-display text-[2.6rem] leading-none font-bold text-[#f4efe0] [text-shadow:0_2px_30px_rgba(246,197,68,.3)]">
+            แกลเลอรีจอ ESP32
           </h1>
-          <p className="text-[#6f8ba0] text-[13px] mt-1">
-            เลือกบท → ดู preview → เสียบ USB → Quick Flash ·{" "}
-            <a className="text-[#4dc4ff] no-underline hover:underline" href={asset("why-hard/")}>
-              บทที่ 0 — ทำไมจอยาก
-            </a>{" · "}
-            <a
-              className="text-[#4dc4ff] no-underline hover:underline"
-              href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle"
-              target="_blank" rel="noopener noreferrer"
-            >
-              Source on GitHub
-            </a>
+          <p className="text-[#c9bfa6] text-sm mt-3 max-w-lg mx-auto">
+            คลิกภาพเพื่อดูจอใหญ่แล้ว flash ลงบอร์ด JC3248W535 ·{" "}
+            <a className="text-[#f6c544] hover:underline" href={asset("why-hard/")}>บทที่ 0 — ทำไมจอยาก</a>
+            {" · "}
+            <a className="text-[#f6c544] hover:underline" href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle" target="_blank" rel="noopener noreferrer">Source</a>
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] gap-8 md:gap-12 items-start">
-          <div className="flex flex-col gap-7">
-            {LEVELS.map((lv) => {
-              const group = LESSONS.filter((l) => l.level === lv.key)
-                .sort((a, b) => a.num.localeCompare(b.num));
-              if (!group.length) return null;
-              return (
-                <div key={lv.key}>
-                  <div className={`font-display font-semibold text-[9.5px] tracking-[.12em] uppercase pb-1.5 border-b ${lv.color}`}>
-                    {lv.label}
-                  </div>
-                  <div className="flex flex-col gap-2 mt-2">
-                    {group.map((l) => (
-                      <LessonItem key={l.id} lesson={l} selected={selected?.id === l.id} onSelect={setSelected} />
-                    ))}
-                  </div>
+        <div className="flex flex-col gap-9">
+          {LEVELS.map((lv) => {
+            const group = LESSONS.filter((l) => l.level === lv.key).sort((a, b) => a.num.localeCompare(b.num));
+            if (!group.length) return null;
+            return (
+              <section key={lv.key}>
+                <h2 className={`font-display text-[13px] font-semibold tracking-wide pb-2 mb-4 border-b border-[#2a3a5c] ${lv.color.split(" ")[0]}`}>
+                  {lv.label}
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {group.map((l) => (
+                    <GalleryCard key={l.id} lesson={l} onOpen={setOpen} />
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-
-          <div className="md:sticky md:top-6 order-first md:order-none flex flex-col gap-8">
-            <div>
-              <DevicePreview lesson={selected} />
-              <FlashDock lesson={selected} />
-            </div>
-            <Specs />
-          </div>
+              </section>
+            );
+          })}
         </div>
 
-        <footer className="mt-14 pt-5 border-t border-[#1a2838] text-center text-[11px] text-[#6f8ba0]">
-          kru32-oracle ·{" "}
-          <a
-            className="text-[#4dc4ff]"
-            href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle"
-            target="_blank" rel="noopener noreferrer"
-          >
+        <footer className="mt-14 pt-5 border-t border-[#2a3a5c] text-center text-[11px] text-[#8a9bbd]">
+          <a className="text-[#f6c544]" href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle" target="_blank" rel="noopener noreferrer">
             the-oracle-keeps-the-human-human/kru32-oracle
           </a>{" "}
           · กลั่นจาก 41.6 ชม. 186 commits และจอจริง 8 ตัวของ esp32-oracle
-          <span className="block mt-2 text-[#4a6578]">
-            🤖 หน้านี้สร้างและดูแลโดย kru32-oracle (AI) — ไม่ใช่มนุษย์
-          </span>
+          <span className="block mt-2 text-[#5f7091]">🤖 หน้านี้สร้างและดูแลโดย kru32-oracle (AI) — ไม่ใช่มนุษย์</span>
         </footer>
       </div>
+
+      {open && <Lightbox lesson={open} onClose={() => setOpen(null)} />}
     </>
   );
 }
