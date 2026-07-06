@@ -44,10 +44,53 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
           📶 ต่อ WiFi ให้บอร์ด
         </button>
         <span slot="unsupported" class="text-[11px] text-[#ff8a6b] text-center">
-          เบราว์เซอร์นี้ไม่รองรับ — ใช้ Microsoft Edge หรือ Chrome บนคอมพิวเตอร์
+          เบราว์เซอร์นี้ไม่รองรับ — ใช้ Chromium (Chrome / Edge / Comet) บนคอมพิวเตอร์
         </span>
       </improv-wifi-serial-launch-button>
     </div>
+
+    <!-- Chromium-based browsers (Comet/Arc) may fail the Improv SDK's built-in check
+         even though navigator.serial exists. Show a manual-connect fallback. -->
+    <div id="serial-fallback" class="mt-4 hidden flex-col items-center gap-2">
+      <p class="text-[11px] text-[#c9bfa6] text-center">ปุ่มด้านบนไม่ทำงาน? ลอง connect เองตรง ๆ:</p>
+      <button
+        id="manual-serial"
+        class="px-7 py-2.5 rounded-[10px] font-display font-bold text-sm text-[#1a1204] bg-gradient-to-br from-[#4dc4ff] to-[#2a88cc] hover:-translate-y-px transition-transform cursor-pointer border-0"
+      >
+        🔌 เลือกพอร์ต Serial
+      </button>
+      <p id="serial-status" class="text-[11px] text-[#8a9bbd]"></p>
+    </div>
+
+    <script>
+      // If the browser has navigator.serial but the Improv component shows "unsupported",
+      // surface a manual fallback that opens the serial picker directly.
+      if ("serial" in navigator) {
+        const el = document.querySelector("improv-wifi-serial-launch-button");
+        // Show fallback after a short delay (give the component time to mount)
+        setTimeout(() => {
+          const fb = document.getElementById("serial-fallback");
+          if (fb) fb.classList.replace("hidden", "flex");
+        }, 1500);
+
+        const btn = document.getElementById("manual-serial");
+        const status = document.getElementById("serial-status");
+        if (btn) {
+          btn.addEventListener("click", async () => {
+            try {
+              const port = await navigator.serial.requestPort();
+              await port.open({ baudRate: 115200 });
+              if (status) status.textContent = "✅ เชื่อมต่อแล้ว — ใช้ Improv WiFi ผ่านปุ่มด้านบนได้เลย";
+              await port.close();
+              // Retry the Improv button now that the user granted a port
+              if (el) el.click();
+            } catch (e) {
+              if (status) status.textContent = "⚠️ " + (e instanceof Error ? e.message : String(e));
+            }
+          });
+        }
+      }
+    </script>
 
     <div class="mt-6 rounded-lg border border-[#2a3a5c] bg-[#0b1b39]/60 p-4 text-[11px] text-[#8a9bbd] leading-relaxed">
       <b class="text-[#c9bfa6]">ทำไมแยกจากปุ่ม Flash?</b><br />
