@@ -212,11 +212,10 @@ function Lightbox({ lesson, onClose }: { lesson: Lesson; onClose: () => void }) 
         </div>
         <div className="mt-3 text-[10px] text-[#8a9bbd] text-center leading-relaxed">
           .factory.bin (bootloader + partition) · เสียบ USB-C พอร์ต native · ~30 วินาที<br />
-          หลัง flash เว็บจะถามตั้งค่า Wi-Fi ผ่าน USB (Improv) ได้เลย
+          แก้ <span className="font-mono text-[#c9bfa6]">wifi: ssid/password</span> ใน YAML เป็นของคุณก่อน flash
         </div>
-        <div className="mt-2 text-[10px] text-[#e0a838] text-center leading-relaxed">
-          ⚠️ ใช้ <b>Chrome หรือ Edge</b> เท่านั้น — เบราว์เซอร์ Chromium ตัวอื่น (Comet/Arc/Brave)
-          อาจ crash ตอนบอร์ด reset หลัง flash
+        <div className="mt-2 text-[10px] text-[#8a9bbd] text-center leading-relaxed">
+          ใช้ <b className="text-[#c9bfa6]">Chrome หรือ Edge</b> บนคอมพิวเตอร์ (WebSerial) · flash จบแล้วปิดหน้าได้เลย
         </div>
       </div>
     </div>

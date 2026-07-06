@@ -24,14 +24,10 @@ logger:
   level: INFO
   hardware_uart: USB_SERIAL_JTAG
 
-# WiFi ตั้งค่าผ่านเว็บ flasher (Improv Serial) — ไม่ต้อง hardcode
-# ถ้ายังไม่ provision บอร์ดจะเปิด AP "Kru32-Basic" ให้ตั้งค่าได้
+# wifi: เปลี่ยน ssid/password เป็นของคุณเอง
 wifi:
-  ap:
-    ssid: "Kru32-Basic Setup"
-
-# Improv Serial — esp-web-tools โชว์ปุ่ม "Configure Wi-Fi" หลัง flash
-improv_serial:
+  ssid: kru32-dev
+  password: kru32pass123
 
 # ── QSPI bus (4 data + clk) ──
 spi:
