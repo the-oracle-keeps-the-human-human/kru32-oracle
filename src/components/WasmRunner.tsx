@@ -1,351 +1,535 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-type RuntimeState = {
-  hasFramebuffer: boolean;
-  framebufferPtr: number | null;
-  width: number;
-  height: number;
-  statusLine: string;
-  exportedFunctions: string[];
+type GifWasmDecoder = {
+  HEAPU8: Uint8Array;
+  _malloc: (size: number) => number;
+  _free: (ptr: number) => void;
+  _gif_open: (ptr: number, len: number) => number;
+  _gif_close: () => void;
+  _gif_width: () => number;
+  _gif_height: () => number;
+  _gif_play: (delayPtr: number) => number;
+  _gif_fb: () => number;
 };
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-export const DEFAULT_MODULE_URL = `${BASE}/wasm-apps/lord-knight/gifapp.wasm`;
+type GifModuleFactory = (options?: {
+  locateFile?: (path: string) => string;
+}) => Promise<GifWasmDecoder>;
 
-export const WASM_RUNNER_NOTES = {
-  module: "03-lord-knight/wasm/gifapp.wasm",
-  imports: "none",
-  instantiate: "WebAssembly.instantiate with empty imports",
-  renderPath: "gifapp_run() updates framebuffer -> gifapp_fb() returns pointer to linear-memory RGBA8888 frame",
-  shimNeeded: "none for this module; wasi_snapshot_preview1 shim included for future cases",
-  feasible: true,
+type FrameSet = {
+  frames: ImageData[];
+  delays: number[];
+  width: number;
+  height: number;
 };
 
 interface WasmRunnerProps {
-  /** Demo spike stays off unless explicitly enabled. */
-  enabled?: boolean;
-  moduleUrl?: string;
-  fallbackWidth?: number;
-  fallbackHeight?: number;
+  appId: string;
+  states?: string[];
 }
 
-function createBrowserWasiShim(memRef: { memory?: WebAssembly.Memory }): Record<string, WebAssembly.ImportValue> {
-  return {
-    // args + environment are no-op / tiny-compatible for browser-only preview use cases.
-    args_sizes_get: () => 0,
-    args_get: () => 0,
-    environ_get: () => 0,
-    environ_sizes_get: () => 0,
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const DECODER_BASE = `${BASE}/gif-wasm`;
+const APP_BASE = `${BASE}/wasm-apps`;
 
-    // stdout / stderr -> JS console fallback.
-    fd_write: (fd: number, iovs: number, iovsLen: number, nwritten: number) => {
-      const memory = memRef.memory;
-      if (!memory) return 0;
-      const data = new DataView(memory.buffer);
-      let written = 0;
-      for (let i = 0; i < iovsLen; i++) {
-        const addr = iovs + i * 8;
-        const ptr = data.getUint32(addr, true);
-        const len = data.getUint32(addr + 4, true);
-        const bytes = new Uint8Array(memory.buffer, ptr, len);
-        const txt = new TextDecoder().decode(bytes);
-        if (fd === 1 || fd === 2) {
-          // eslint-disable-next-line no-console
-          console.log(txt);
-        }
-        written += len;
-      }
-      if (nwritten !== 0 && memory) {
-        new DataView(memory.buffer).setUint32(nwritten, written, true);
-      }
-      return 0;
-    },
+const DEFAULT_STATES = ["idle", "busy", "attention", "celebrate", "dizzy", "sleep", "heart"];
 
-    // basic read/close/file ops no-op
-    fd_read: (_fd: number, _iovs: number, _iovsLen: number, nread: number) => {
-      if (memRef.memory) new DataView(memRef.memory.buffer).setUint32(nread, 0, true);
-      return 0;
-    },
-    fd_close: () => 0,
-    fd_seek: () => 0,
-    fd_tell: () => 0,
-    fd_fdstat_get: () => 0,
-    fd_prestat_get: (_fd: number, prestatPtr: number) => {
-      if (memRef.memory) new DataView(memRef.memory.buffer).setUint8(prestatPtr, 0);
-      return 0;
-    },
-    fd_prestat_dir_name: () => 0,
-
-    random_get: (buf: number, len: number) => {
-      const memory = memRef.memory;
-      if (!memory) return 0;
-      const bytes = new Uint8Array(memory.buffer, buf, len);
-      crypto.getRandomValues(bytes);
-      return 0;
-    },
-
-    proc_exit: (code: number) => {
-      throw new Error(`WASI proc_exit(${code})`);
-    },
-
-    clock_time_get: (_id: number, _precision: number, ptr: number) => {
-      if (!memRef.memory) return 0;
-      const nanos = BigInt(Date.now()) * 1_000_000n;
-      const hi = Number((nanos >> 32n) & 0xffffffffn);
-      const lo = Number(nanos & 0xffffffffn);
-      const dv = new DataView(memRef.memory.buffer);
-      dv.setUint32(ptr, lo, true);
-      dv.setUint32(ptr + 4, hi, true);
-      return 0;
-    },
-
-    path_open: () => 0,
-    fd_filestat_get: () => 0,
-    sock_recv: () => 0,
-    sock_send: () => 0,
-  };
-}
-
-function pickFunctionName(keys: string[], patterns: RegExp[]): string | null {
-  for (const re of patterns) {
-    const match = keys.find((key) => re.test(key));
-    if (match) return match;
+declare global {
+  interface Window {
+    GifModule?: GifModuleFactory;
   }
-  return null;
 }
 
-function safeInvokeInt(fn: ((...args: number[]) => number) | null): { result?: number; error?: string } {
-  if (!fn) return {};
-  for (let argc = 0; argc <= 2; argc += 1) {
-    try {
-      const args = new Array(argc).fill(0);
-      const result = fn(...args);
-      return { result };
-    } catch (error) {
-      if (argc === 2) {
-        return { error: error instanceof Error ? error.message : String(error) };
+const FRAME_SCALE = 3;
+const MAX_GIF_FRAMES = 10000;
+const MIN_FRAME_DELAY = 20;
+const DEFAULT_FRAME_DELAY = 80;
+
+let gifScriptPromise: Promise<void> | null = null;
+let gifModulePromise: Promise<GifWasmDecoder> | null = null;
+
+function stateListFingerprint(states: string[]) {
+  return states.join("|").toLowerCase();
+}
+
+function gifUrl(appId: string, state: string) {
+  return `${APP_BASE}/${appId}/characters/${appId}/${state}.gif`;
+}
+
+function readFrameDelay(heap: Uint8Array, delayPtr: number): number {
+  const delay =
+    heap[delayPtr] |
+    (heap[delayPtr + 1] << 8) |
+    (heap[delayPtr + 2] << 16) |
+    (heap[delayPtr + 3] << 24);
+
+  return Math.max(MIN_FRAME_DELAY, (delay >>> 0) || DEFAULT_FRAME_DELAY);
+}
+
+function clampStateNames(input: string[]) {
+  const seen = new Set<string>();
+  for (const name of input) {
+    const clean = name.trim().toLowerCase();
+    if (!clean) continue;
+    if (!seen.has(clean)) seen.add(clean);
+  }
+  return Array.from(seen);
+}
+
+function ensureGifDecScript(): Promise<void> {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("gif decoder requires window"));
+  }
+
+  if (gifScriptPromise) return gifScriptPromise;
+
+  const src = `${DECODER_BASE}/gifdec.js`;
+  const srcUrl = new URL(src, window.location.href).href;
+
+  gifScriptPromise = new Promise<void>((resolve, reject) => {
+    const existing = Array.from(document.scripts).find((script) => {
+      const candidate = script.src;
+      return candidate === src || candidate === srcUrl;
+    }) as HTMLScriptElement | undefined;
+
+    const finalize = (status: "loaded" | "failed") => {
+      const target = existing ?? createdScript;
+      if (target) target.dataset.kruGifDecoder = status;
+    };
+
+    let createdScript: HTMLScriptElement | undefined;
+
+    const onLoad = () => {
+      finalize("loaded");
+      resolve();
+    };
+
+    const onError = () => {
+      finalize("failed");
+      reject(new Error(`failed to load gif decoder from ${src}`));
+    };
+
+    if (existing) {
+      const state = existing.dataset.kruGifDecoder;
+      if (state === "loaded") {
+        resolve();
+        return;
       }
+      if (typeof window.GifModule === "function") {
+        resolve();
+        return;
+      }
+      if (state === "failed") {
+        reject(new Error(`failed to load gif decoder from ${src}`));
+        return;
+      }
+
+      existing.addEventListener("load", onLoad, { once: true });
+      existing.addEventListener("error", onError, { once: true });
+      return;
     }
-  }
-  return { error: "invoke failed" };
-}
 
-export default function WasmRunner({
-  enabled = false,
-  moduleUrl = DEFAULT_MODULE_URL,
-  fallbackWidth = 96,
-  fallbackHeight = 100,
-}: WasmRunnerProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [status, setStatus] = useState("ready");
-  const [error, setError] = useState("");
-  const [state, setState] = useState<RuntimeState>({
-    hasFramebuffer: false,
-    framebufferPtr: null,
-    width: fallbackWidth,
-    height: fallbackHeight,
-    statusLine: "",
-    exportedFunctions: [],
+    createdScript = document.createElement("script");
+    createdScript.src = src;
+    createdScript.async = true;
+    createdScript.dataset.kruGifDecoder = "loading";
+    createdScript.addEventListener("load", onLoad, { once: true });
+    createdScript.addEventListener("error", onError, { once: true });
+    document.head.appendChild(createdScript);
   });
 
-  useEffect(() => {
-    if (!enabled) return;
-    if (typeof window === "undefined" || typeof WebAssembly === "undefined") {
-      setStatus("WebAssembly unsupported");
-      return;
+  return gifScriptPromise;
+}
+
+async function ensureGifDecoderModule(): Promise<GifWasmDecoder> {
+  if (gifModulePromise) return gifModulePromise;
+
+  gifModulePromise = (async () => {
+    await ensureGifDecScript();
+    const factory = window.GifModule;
+    if (typeof factory !== "function") {
+      throw new Error("GifModule not available on window after loading gifdec.js");
     }
+
+    const module = await factory({
+      locateFile: (path: string) => `${DECODER_BASE}/${path}`,
+    });
+
+    if (typeof module._malloc !== "function" || !(module.HEAPU8 instanceof Uint8Array)) {
+      throw new Error("gif decoder module failed to initialize");
+    }
+
+    return module;
+  })();
+
+  return gifModulePromise;
+}
+
+function decodeGif(module: GifWasmDecoder, bytes: Uint8Array): FrameSet {
+  const sourcePtr = module._malloc(bytes.length);
+  if (sourcePtr === 0) {
+    throw new Error("gif decoder malloc failed");
+  }
+
+  module.HEAPU8.set(bytes, sourcePtr);
+
+  const result = module._gif_open(sourcePtr, bytes.length);
+  const frames: ImageData[] = [];
+  const delays: number[] = [];
+  let width = 0;
+  let height = 0;
+  let delayPtr = 0;
+
+  try {
+    if (result !== 0) {
+      throw new Error(`gif_open failed (${result})`);
+    }
+
+    width = module._gif_width();
+    height = module._gif_height();
+    if (width <= 0 || height <= 0) {
+      throw new Error(`invalid frame size: ${width}x${height}`);
+    }
+
+    const stride = width * height * 4;
+    delayPtr = module._malloc(4);
+
+    for (let i = 0; i < MAX_GIF_FRAMES; i += 1) {
+      const r = module._gif_play(delayPtr);
+      if (r < 0) break;
+
+      const fb = module._gif_fb();
+      const frame = new ImageData(width, height);
+      frame.data.set(module.HEAPU8.subarray(fb, fb + stride));
+      frames.push(frame);
+      delays.push(readFrameDelay(module.HEAPU8, delayPtr));
+
+      if (r === 0) break;
+    }
+
+    return { frames, delays, width, height };
+  } finally {
+    if (delayPtr) module._free(delayPtr);
+    module._gif_close();
+    module._free(sourcePtr);
+  }
+}
+
+async function urlExists(url: string): Promise<boolean> {
+  try {
+    const head = await fetch(url, { method: "HEAD", cache: "no-store" });
+    if (head.ok) return true;
+
+    const get = await fetch(url, { method: "GET", cache: "no-store" });
+    return get.ok;
+  } catch {
+    return false;
+  }
+}
+
+export default function WasmRunner({ appId, states = DEFAULT_STATES }: WasmRunnerProps) {
+  const requestedStates = useMemo(() => clampStateNames(states), [states]);
+  const finalStates = requestedStates.length > 0 ? requestedStates : DEFAULT_STATES;
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const framesRef = useRef<ImageData[]>([]);
+  const delaysRef = useRef<number[]>([]);
+  const frameIndexRef = useRef<number>(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const mountedRef = useRef(true);
+  const playingRef = useRef<boolean>(true);
+
+  const [decoder, setDecoder] = useState<GifWasmDecoder | null>(null);
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
+  const [activeState, setActiveState] = useState<string>("");
+  const [status, setStatus] = useState<string>("loading gif decoder");
+  const [error, setError] = useState<string>("");
+  const [playing, setPlaying] = useState<boolean>(true);
+  const [dimensions, setDimensions] = useState({ width: 96, height: 100 });
+
+  const stopLoop = () => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  };
+
+  const drawCurrentFrame = (index: number) => {
+    const ctx = ctxRef.current;
+    const frame = framesRef.current[index];
+    if (!ctx || !frame) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) {
-      setStatus("Canvas unavailable");
-      return;
+    if (!canvas) return;
+
+    if (canvas.width !== frame.width || canvas.height !== frame.height) {
+      canvas.width = frame.width;
+      canvas.height = frame.height;
     }
 
-    const memRef: { memory?: WebAssembly.Memory } = {};
+    ctx.putImageData(frame, 0, 0);
+  };
+
+  const tick = () => {
+    if (!mountedRef.current || !playingRef.current || framesRef.current.length === 0) return;
+
+    const current = frameIndexRef.current;
+    drawCurrentFrame(current);
+
+    const delay = delaysRef.current[current] ?? DEFAULT_FRAME_DELAY;
+    frameIndexRef.current = (current + 1) % framesRef.current.length;
+
+    timerRef.current = setTimeout(() => {
+      rafRef.current = requestAnimationFrame(tick);
+    }, delay);
+  };
+
+  const startLoop = () => {
+    stopLoop();
+    if (!playingRef.current || framesRef.current.length === 0) return;
+
+    frameIndexRef.current = 0;
+    tick();
+  };
+
+  useEffect(() => {
+    mountedRef.current = true;
+
     let cancelled = false;
-
-    const renderFramebuffer = (width: number, height: number, ptr: number) => {
-      const memory = memRef.memory;
-      if (!memory) return;
-      const byteCount = width * height * 4;
-      if (byteCount <= 0) return;
-      const mem = new Uint8ClampedArray(memory.buffer, ptr, byteCount);
-      const copy = new Uint8ClampedArray(mem);
-      const image = new ImageData(copy, width, height);
-      ctx.putImageData(image, 0, 0);
-    };
-
-    const run = async () => {
-      setStatus("loading module");
-      setError("");
-
-      try {
-        const response = await fetch(moduleUrl);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const bytes = await response.arrayBuffer();
-        const compiled = await WebAssembly.compile(bytes);
-        const moduleImports = WebAssembly.Module.imports(compiled);
-
-        const unsupported = moduleImports.filter(
-          (m) => m.module !== "wasi_snapshot_preview1" && !(m.module === "env" && m.name === "emscripten_resize_heap"),
-        );
-        if (unsupported.length > 0) {
-          const names = unsupported.map((i) => `${i.module}.${i.name}`).join(", ");
-          throw new Error(`unsupported import module(s): ${names}`);
-        }
-
-        const importObj: Record<string, Record<string, WebAssembly.ImportValue>> = {};
-        if (moduleImports.some((i) => i.module === "wasi_snapshot_preview1")) {
-          importObj.wasi_snapshot_preview1 = createBrowserWasiShim(memRef);
-        }
-        if (moduleImports.some((i) => i.module === "env" && i.name === "emscripten_resize_heap")) {
-          importObj.env = {
-            emscripten_resize_heap: () => 1,
-          };
-        }
-
-        const instance = await WebAssembly.instantiate(compiled, importObj);
-        memRef.memory = instance.exports.memory instanceof WebAssembly.Memory ? instance.exports.memory : undefined;
-
-        const exports = instance.exports as Record<string, WebAssembly.ExportValue>;
-        const fnNames = Object.keys(exports).filter((k) => typeof exports[k] === "function").sort((a, b) => a.localeCompare(b));
-
-        const widthFnName = pickFunctionName(fnNames, [/^gifapp_width$/i, /^.*_width$/i]);
-        const heightFnName = pickFunctionName(fnNames, [/^gifapp_height$/i, /^.*_height$/i]);
-        const fbFnName = pickFunctionName(fnNames, [/^gifapp_fb$/i, /^.*_fb$/i]);
-        const runFnName = pickFunctionName(fnNames, [
-          /^gifapp_run$/i,
-          /^gifapp_selftest$/i,
-          /^selftest$/i,
-          /^run$/i,
-          /^pulse$/i,
-          /^sense$/i,
-        ]);
-
-        const widthFn = widthFnName && (exports[widthFnName] as ((...args: number[]) => number) | undefined);
-        const heightFn = heightFnName && (exports[heightFnName] as ((...args: number[]) => number) | undefined);
-        const fbFn = fbFnName && (exports[fbFnName] as ((...args: number[]) => number) | undefined);
-        const runFn = runFnName && (exports[runFnName] as ((...args: number[]) => number) | undefined);
-
-        let width = fallbackWidth;
-        let height = fallbackHeight;
-        canvas.width = width;
-        canvas.height = height;
-        ctx.imageSmoothingEnabled = false;
-
-        let statusLine = `Exports: ${fnNames.join(", ")}`;
-        let hasFramebuffer = false;
-        let framebufferPtr: number | null = null;
-
-        let runLine = "";
-        const runResult = runFn ? safeInvokeInt(runFn) : {};
-        if (runResult.error) {
-          throw new Error(`run invocation failed: ${runResult.error}`);
-        }
-        if (runResult.result !== undefined) {
-          runLine = `${runFnName}: ${runResult.result}`;
-        }
-
-        if (widthFn) {
-          const w = safeInvokeInt(widthFn).result;
-          if (typeof w === "number" && w > 0) width = w;
-        }
-        if (heightFn) {
-          const h = safeInvokeInt(heightFn).result;
-          if (typeof h === "number" && h > 0) height = h;
-        }
-
-        // Some modules (notably gifapp) expose width/height only after a run call.
-        if ((!width || !height) && runFnName?.toLowerCase().includes("selftest") && runResult.result !== undefined) {
-          const v = runResult.result;
-          const w = (v >>> 16) & 0xffff;
-          const h = v & 0xffff;
-          if (w > 0) width = w;
-          if (h > 0) height = h;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        if (fbFn && memRef.memory) {
-          const ptr = safeInvokeInt(fbFn).result;
-          if (typeof ptr === "number" && ptr >= 0) {
-            framebufferPtr = ptr;
-            hasFramebuffer = true;
-            statusLine = `framebuffer=${fbFnName}(ptr=0x${ptr.toString(16)}) ${runLine ? `· ${runLine}` : ""}`;
-            renderFramebuffer(width, height, ptr);
-          }
-        } else if (runLine) {
-          statusLine = runLine;
-        }
-
-        if (cancelled) return;
-        setState({
-          hasFramebuffer,
-          framebufferPtr,
-          width,
-          height,
-          statusLine,
-          exportedFunctions: fnNames,
-        });
-
-        setStatus("ready");
-      } catch (e) {
-        if (cancelled) return;
+    ensureGifDecoderModule()
+      .then((m) => {
+        if (cancelled || !mountedRef.current) return;
+        setDecoder(m);
+        setStatus("gif decoder ready");
+      })
+      .catch((e) => {
+        if (cancelled || !mountedRef.current) return;
         setError(e instanceof Error ? e.message : String(e));
-        setStatus("error");
-      }
-    };
-
-    run();
+        setStatus("decoder unavailable");
+      });
 
     return () => {
       cancelled = true;
+      mountedRef.current = false;
+      stopLoop();
     };
-  }, [enabled, moduleUrl, fallbackHeight, fallbackWidth]);
+  }, []);
 
-  if (!enabled) return null;
+  useEffect(() => {
+    if (!decoder) return;
+
+    let cancelled = false;
+    const probeList = finalStates;
+
+    setAvailableStates([]);
+    setActiveState("");
+    stopLoop();
+    setStatus("probing available gif states");
+
+    const runProbe = async () => {
+      const results = await Promise.all(
+        probeList.map(async (stateName) => ({
+          stateName,
+          ok: await urlExists(gifUrl(appId, stateName)),
+        })),
+      );
+
+      if (cancelled || !mountedRef.current) return;
+
+      const next = results.filter((entry) => entry.ok).map((entry) => entry.stateName);
+      setAvailableStates(next);
+
+      if (!next.length) {
+        setError(`No valid GIF states found for ${appId}`);
+        setStatus("no animations available");
+        return;
+      }
+
+      const first = next.includes("idle") ? "idle" : next[0];
+      setActiveState(first);
+      setError("");
+      setStatus(`states ready (${next.length})`);
+    };
+
+    runProbe().catch((e) => {
+      if (cancelled || !mountedRef.current) return;
+      setError(e instanceof Error ? e.message : String(e));
+      setStatus("probe failed");
+    });
+
+    return () => {
+      cancelled = true;
+      stopLoop();
+    };
+  }, [appId, decoder, stateListFingerprint(finalStates)]);
+
+  useEffect(() => {
+    if (!decoder || !activeState) return;
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const decodeAndPlay = async () => {
+      setError("");
+      stopLoop();
+      setStatus(`loading ${activeState}`);
+
+      if (!mountedRef.current || signal.aborted) return;
+
+      const url = gifUrl(appId, activeState);
+      const response = await fetch(url, { signal, cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`couldn't load ${url}`);
+      }
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      const { frames, delays, width, height } = decodeGif(decoder, bytes);
+
+      if (cancelled || signal.aborted) return;
+
+      if (!frames.length || !delays.length) {
+        throw new Error("no frames decoded");
+      }
+
+      framesRef.current = frames;
+      delaysRef.current = delays;
+      setDimensions({ width, height });
+      drawCurrentFrame(0);
+      setStatus(`state: ${activeState} · ${frames.length} frame${frames.length > 1 ? "s" : ""}`);
+
+      if (playingRef.current) {
+        startLoop();
+      }
+    };
+
+    decodeAndPlay().catch((e) => {
+      if (cancelled || signal.aborted) return;
+      framesRef.current = [];
+      delaysRef.current = [];
+      setError(e instanceof Error ? e.message : String(e));
+      setStatus("decode failed");
+    });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      stopLoop();
+    };
+  }, [appId, activeState, decoder]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (!ctxRef.current) {
+      ctxRef.current = canvas.getContext("2d");
+    }
+
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+
+    ctx.imageSmoothingEnabled = false;
+
+    return () => {
+      ctxRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    if (!dimensions.width || !dimensions.height) return;
+
+    canvasRef.current.width = dimensions.width;
+    canvasRef.current.height = dimensions.height;
+
+    drawCurrentFrame(frameIndexRef.current % Math.max(1, framesRef.current.length));
+  }, [dimensions.width, dimensions.height]);
+
+  useEffect(() => {
+    playingRef.current = playing;
+    if (!playing) {
+      stopLoop();
+      setStatus((prev) => (prev.includes("paused") ? prev : `paused · ${activeState || "idle"}`));
+      return;
+    }
+
+    startLoop();
+    return () => {
+      stopLoop();
+    };
+  }, [playing, activeState]);
+
+  const handlePlayToggle = () => {
+    setPlaying((current) => !current);
+  };
+
+  const handleStateSelect = (stateName: string) => {
+    if (stateName === activeState) return;
+    setActiveState(stateName);
+    setPlaying(true);
+  };
+
+  const displayWidth = dimensions.width * FRAME_SCALE;
+  const displayHeight = dimensions.height * FRAME_SCALE;
 
   return (
-    <section className="rounded-[12px] border border-[#2a3a5c] bg-[#08152e]/80 p-4 text-[#e8e2d0]">
-      <h3 className="font-display text-sm font-semibold text-[#f6c544]">WASM Preview Spike</h3>
-      <p className="mt-1 text-[12px] text-[#9fb2ce]">Status: {status}</p>
-      {error ? <p className="mt-1 text-xs text-[#ff8a6b]">{error}</p> : null}
-
-      <div className="mt-3 inline-block rounded-lg overflow-hidden border border-[#26385f] bg-black">
+    <section
+      className="inline-flex min-w-fit flex-col items-start gap-2 text-[#9bb0d3]"
+      style={{ fontFamily: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace' }}
+    >
+      <div className="overflow-hidden rounded-[10px] border border-[#2a3a5c] bg-black/10">
         <canvas
           ref={canvasRef}
-          width={state.width}
-          height={state.height}
-          className="block w-[288px] h-[300px]"
-          aria-label="WASM preview canvas"
-          style={{ width: `${state.width}px`, height: `${state.height}px` }}
+          width={dimensions.width}
+          height={dimensions.height}
+          className="block image-rendering-pixelated"
+          style={{ width: `${displayWidth}px`, height: `${displayHeight}px` }}
+          aria-label="WASM GIF character frame"
         />
       </div>
 
-      <p className="mt-2 text-[11px] text-[#8a9bbd]">
-        Module: <code>{moduleUrl}</code>
-      </p>
-      <p className="mt-1 text-[11px] text-[#8a9bbd]">{state.statusLine || "loading metadata…"}</p>
-      <p className="mt-1 text-[11px] text-[#8a9bbd]">
-        Exported functions: {state.exportedFunctions.length > 0 ? state.exportedFunctions.join(", ") : "(loading)"}
-      </p>
-      {state.hasFramebuffer ? (
-        <p className="mt-1 text-[11px] text-[#8a9bbd]">
-          Framebuffer: 0x{state.framebufferPtr?.toString(16)} @ {state.width}×{state.height}
-        </p>
-      ) : (
-        <p className="mt-1 text-[11px] text-[#8a9bbd]">
-          No exported framebuffer found; this remains compute-only preview mode.
-        </p>
-      )}
+      <div className="flex flex-wrap gap-1.5">
+        {availableStates.map((stateName) => {
+          const active = stateName === activeState;
+          return (
+            <button
+              key={stateName}
+              type="button"
+              onClick={() => handleStateSelect(stateName)}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+                active
+                  ? "bg-[#f6c544] text-[#1a1204] border border-[#ffda6b]"
+                  : "border border-[#2a3a5c] text-[#91a6cc] hover:border-[#f6c544] hover:text-[#f6c544]"
+              }`}
+            >
+              {stateName}
+            </button>
+          );
+        })}
 
-      <p className="mt-2 text-[10px] text-[#8a9bbd] leading-relaxed">
-        This spike is behind a feature flag and uses import inspection before instantiation. If imports include
-        <code> wasi_snapshot_preview1</code>, a small browser shim is injected; unknown imports are rejected.
-      </p>
+        <button
+          type="button"
+          onClick={handlePlayToggle}
+          className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+            playing
+              ? "bg-[#0f2447] text-[#e8e2d0] border border-[#f6c544]"
+              : "border border-[#2a3a5c] text-[#91a6cc]"
+          }`}
+        >
+          {playing ? "⏸ pause" : "▶ play"}
+        </button>
+      </div>
+
+      {error ? <p className="max-w-[288px] text-[11px] text-[#ff9f7a]">{error}</p> : null}
+      <p className="text-[10px] text-[#8a9bbd]">{status}</p>
+      <p className="text-[10px] text-[#7a8bad]">module: {appId}</p>
+      <p className="text-[10px] text-[#7a8bad]">{`gif src: ${APP_BASE}/${appId}/characters/${appId}/`}</p>
     </section>
   );
 }
