@@ -22,10 +22,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <meta name="description" content={description} />
     <!-- ฟอนต์ self-host (JetBrains Mono + IBM Plex Sans Thai) — ไม่พึ่ง Google CDN -->
     <link rel="stylesheet" href={`${base}/fonts.css`} />
-    <!-- esp-web-tools self-host: defines <esp-web-install-button> (flash flow) -->
-    <script type="module" src={`${base}/vendor/esp-web-tools/install-button.js`}></script>
-    <!-- Improv-Serial SDK self-host: defines <improv-wifi-serial-launch-button> (หน้า Config WiFi) -->
-    <script type="module" src={`${base}/vendor/improv/serial-launch-button.js`}></script>
+    <!-- esp-web-tools@10.2.1 (world latest) จาก unpkg — ตัวเต็ม พิสูจน์แล้ว flash ได้ไม่ crash
+         (vendored self-host ที่เคยลอง chunk ไม่ครบ → flash เงียบ; unpkg เต็ม) -->
+    <script type="module" src="https://unpkg.com/esp-web-tools@10.2.1/dist/web/install-button.js?module"></script>
+    <!-- Improv-Serial SDK (unpkg) สำหรับหน้า /wifi (flash แล้ว improv ในตัวก็ได้เหมือนกัน) -->
+    <script type="module" src="https://unpkg.com/improv-wifi-serial-sdk@2/dist/web/launch-button.js?module"></script>
   </head>
   <body>
     <slot />
