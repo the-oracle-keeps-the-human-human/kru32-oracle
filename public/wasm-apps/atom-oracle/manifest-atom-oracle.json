@@ -1,0 +1,16 @@
+{
+  "name": "Atom Oracle Atomic Pulse",
+  "version": "2026.06.17",
+  "new_install_prompt_erase": false,
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        { "path": "atom-oracle-bootloader.bin", "offset": 4096 },
+        { "path": "atom-oracle-partitions.bin", "offset": 32768 },
+        { "path": "atom-oracle-boot_app0.bin", "offset": 57344 },
+        { "path": "atom-oracle-firmware.bin", "offset": 65536 }
+      ]
+    }
+  ]
+}
