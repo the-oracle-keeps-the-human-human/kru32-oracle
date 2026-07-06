@@ -1,0 +1,107 @@
+# kru32-team — STANDING codex team (ASSET: keep alive, redispatch work; do NOT teardown per Nat).
+# Round 2 task: make the WASM-apps gallery FLASH-ABLE for as many apps as possible + WASM preview spike.
+# Pattern: Soul-Brews-Studio/maw-codex-team-kit. Session 81-kru32, lead window kru32.
+# ⚠️ HOT FILES (lead-owned): src/components/App.tsx, src/data/apps.ts, src/data/types.ts, src/pages/*.astro.
+#    Coders deliver firmware/manifests/assets + NEW components; lead wires apps.ts flashable flags + deploys.
+# Report to lead: maw hey 81-kru32:kru32
+
+name: kru32-team
+project: the-oracle-keeps-the-human-human/kru32-oracle
+session: 81-kru32
+
+members:
+  - role: lead
+    name: kru32
+    engine: claude
+
+  - role: petpacks-flash
+    name: kru32-petpacks-flash
+    engine: omx-1
+    worktree: agents/kru32-petpacks-flash
+    branch: agents/kru32-petpacks-flash
+    prompt: |
+      Coder kru32-petpacks-flash — make PET-PACK apps flashable (deterministic recipe, NO compile).
+      Source (READ ONLY): /opt/Code/github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/submissions/
+      Recipe (from _TEMPLATE/README.md, confirmed by 02-Nova's manifest):
+        - Shared firmware (reuse from 02-Nova/): bootloader.bin@0x0, partition-table.bin@0x8000,
+          jc3248_pet_idf-clawd.bin@0x10000. These are IDENTICAL for every pet.
+        - Per app: pack characters/<id>/*.gif into a 3MB LittleFS image <id>-storage.bin @0x290000
+          using mklittlefs (find it under ~/.platformio/packages/tool-mklittlefs*/ or `pio pkg exec`).
+        - Manifest: {name, version, new_install_prompt_erase:FALSE (never true!), builds:[{chipFamily:"ESP32-S3",
+          parts:[bootloader@0, partition-table@32768, jc3248_pet_idf-clawd@65536, <id>-storage@2686976]}]}
+      Apply to pet apps that have characters/ but no firmware yet: 04-itthi, 03-tinky, 03-tonk, 09-jizo,
+      07-nova, 10-no10, 88-sombo, 03-weizen, 06-gemini, 05-vialumen, 03-leica (and any other characters/ dir).
+      Deliver into public/wasm-apps/<id>/: the 3 shared bins + <id>-storage.bin + manifest-<id>.json.
+      Verify offset-0 byte == 0xE9 (valid image). Report a list of which apps you made flashable + any that failed.
+      NEW files only (public/wasm-apps/**). Never edit App.tsx/apps.ts/types.ts. Build gate: `bun run build` green.
+      Report ACK->done to lead: maw hey 81-kru32:kru32
+
+  - role: bins-flash
+    name: kru32-bins-flash
+    engine: omx-3
+    worktree: agents/kru32-bins-flash
+    branch: agents/kru32-bins-flash
+    prompt: |
+      Coder kru32-bins-flash — make apps that ALREADY have compiled firmware flashable.
+      These submissions ship a webflasher/ dir with real .bin firmware:
+        03-lord-knight (webflasher/firmware-merged.bin), 03-vessel (webflasher/: bootloader/partitions/firmware),
+        08-somtor (webflasher/firmware/: bootloader/partition-table/firmware/somtor-storage),
+        06-atom-oracle (webflasher/dist/: bootloader/partitions/boot_app0/firmware),
+        03-bongbaeng (webflasher/firmware/…esp32s3.bin + esp32/partitions.bin).
+      For each: read their existing manifest/flasher (webflasher/*.html or flasher.json) to get the correct
+      part→offset map, copy the bins into public/wasm-apps/<id>/, write manifest-<id>.json with
+      new_install_prompt_erase:FALSE + those offsets. If a single merged .bin exists, one part @0x0.
+      Verify offset-0 == 0xE9. Report which apps became flashable + offsets used.
+      NEW files only (public/wasm-apps/**). Never edit App.tsx/apps.ts. Build gate: `bun run build` green.
+      Report ACK->done to lead: maw hey 81-kru32:kru32
+
+  - role: wasm-compile
+    name: kru32-wasm-compile
+    engine: omx-4
+    worktree: agents/kru32-wasm-compile
+    branch: agents/kru32-wasm-compile
+    prompt: |
+      Coder kru32-wasm-compile — SPIKE: compile firmware from source for wasm-core apps with no bins.
+      Candidates (have wasm/ + platformio/ or esphome/ but no firmware .bin): 03-gon, 03-singhasingha,
+      02-esp32-oracle (sentinel), 01-chaiklang, 03-vessel(if needed). pio core is at ~/.platformio (not on PATH —
+      invoke via ~/.platformio/penv/bin/pio  or  python3 -m platformio). esp-idf is NOT set up, so prefer the
+      submission's own platformio.ini / esphome yaml.
+      For 1-2 apps FIRST as a spike: cd into a COPY of the submission's build dir (do NOT edit the source repo —
+      copy to /tmp), run the pio/esphome build, collect the output bins, and report: did it build? what bins/offsets?
+      what deps were missing? Only after a spike works, do more. Deliver working bins+manifest into
+      public/wasm-apps/<id>/ (erase:false). Be honest about failures — report which compile and which don't.
+      NEW files only. Never edit App.tsx/apps.ts. Report ACK->plan->findings to lead: maw hey 81-kru32:kru32
+
+  - role: wasm-preview
+    name: kru32-wasm-preview
+    engine: omx-5
+    worktree: agents/kru32-wasm-preview
+    branch: agents/kru32-wasm-preview
+    prompt: |
+      Coder kru32-wasm-preview — SPIKE: can a submission's .wasm run in the BROWSER as a live preview?
+      16 .wasm modules exist (e.g. 02-esp32-oracle/wasm/sentinel.wasm, 06-atom-oracle/wasm/atom-orbit.wasm,
+      03-vessel/wasm/vessel.wasm). They target the on-chip WASM runtime and call host functions (framebuffer draw,
+      time, etc). SPIKE on ONE (pick the simplest, e.g. atom-orbit or sentinel): inspect its imports
+      (`wasm-objdump -x` or WebAssembly.Module.imports), write a minimal JS host-shim that maps its draw calls to a
+      <canvas>, and try to run it. Report: feasible? which imports are needed? how much shim per app? Deliver a
+      SELF-CONTAINED demo component src/components/WasmRunner.tsx (behind a flag, do NOT wire into App.tsx) +
+      a short feasibility note. If NOT feasible, say so clearly + why. NEW files only. Build gate: `bun run build` green.
+      Report ACK->plan->findings to lead: maw hey 81-kru32:kru32
+
+  - role: copy
+    name: kru32-copy
+    engine: omx-6
+    worktree: agents/kru32-copy
+    branch: agents/kru32-copy
+    prompt: |
+      Coder kru32-copy — site copy fixes (small, careful edits).
+      TASK A — footer board count: src/components/App.tsx footer currently says "จอจริง 8 ตัวของ esp32-oracle" —
+      the 8 is outdated/wrong. Change to a non-numeric phrasing "และจอจริงทั้ง fleet ของ esp32-oracle" (do NOT invent
+      a new number). This is the ONE exception where you may edit App.tsx — ONLY that footer line, nothing else;
+      coordinate with lead if unsure.
+      TASK B — reframe src/pages/lesson.astro: the crash is INTERMITTENT + Chromium-version-specific (~149), NOT a
+      guaranteed crash. Reword: heading "Flag เดียวที่ทำเบราว์เซอร์ crash" -> "Flag ที่ทำเบราว์เซอร์ crash ได้
+      (บาง Chromium / บางจังหวะ)"; the "จะ crash จริง" warnings -> "อาจ crash — race + เฉพาะ Chromium ~149; ถ้า Chrome
+      ใหม่กว่า/patch แล้ว อาจไม่ crash ซึ่งปกติ"; add a line: "กดแล้วไม่ crash = ดี (เบราว์เซอร์ patch แล้ว) — erase:false
+      ปลอดภัยเสมอ". Keep both flash buttons + the mechanism section. Keep the Rule-6 footer.
+      Build gate: `bun run build` green. Report ACK->done to lead: maw hey 81-kru32:kru32
