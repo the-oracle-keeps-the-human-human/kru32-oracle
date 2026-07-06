@@ -107,7 +107,7 @@ function Lightbox({ lesson, onClose }: { lesson: Lesson; onClose: () => void }) 
           </esp-web-install-button>
         ) : (
           <div className="mt-4 text-[11px] text-[#ff8a6b] text-center">
-            เบราว์เซอร์นี้ flash ไม่ได้ — ใช้ Chrome/Edge บนคอมพิวเตอร์
+            เบราว์เซอร์นี้ flash ไม่ได้ — ใช้เบราว์เซอร์ Chromium — Chrome / Edge / Comet บนคอมพิวเตอร์
           </div>
         )}
 

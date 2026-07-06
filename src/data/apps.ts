@@ -91,7 +91,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "wasm",
     preview: asset("wasm-apps/singhasingha/preview.png"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-singhasingha",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/singhasingha/manifest-singhasingha.json"),
   },
   {
     id: "tinky",
@@ -123,7 +124,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "wasm",
     preview: asset("wasm-apps/vessel/preview.png"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-vessel",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/vessel/manifest-vessel.json"),
   },
   {
     id: "weizen",
@@ -166,7 +168,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "wasm",
     preview: asset("wasm-apps/atom-oracle/preview.png"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/06-atom-oracle",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/atom-oracle/manifest-atom-oracle.json"),
   },
   {
     id: "gemini",

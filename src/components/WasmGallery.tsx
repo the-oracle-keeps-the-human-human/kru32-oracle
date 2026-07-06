@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { WASM_APPS } from "../data/apps";
 import type { WasmApp } from "../data/types";
+import WasmRunner from "./WasmRunner";
+
+// pet packs ship these GIF states in characters/<id>/ — WasmRunner probes + shows the ones present
+const PET_STATES = ["idle", "busy", "attention", "celebrate", "dizzy", "sleep", "heart"];
+const isPet = (app: WasmApp) => (app.kind ?? "").includes("pet");
 
 // Astro/Vite injects the Pages base path (e.g. "/kru32-oracle/").
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -116,17 +121,22 @@ function WasmLightbox({ app, onClose }: { app: WasmApp; onClose: () => void }) {
           ✕
         </button>
 
-        <div className="rounded-[20px] p-2.5 bg-gradient-to-b from-[#8a6a2e] to-[#2a2012] shadow-[0_20px_50px_-18px_rgba(0,0,0,.8),0_0_60px_-14px_rgba(246,197,68,.3)]">
-          <div className="relative w-[228px] h-[342px] bg-black rounded-[11px] overflow-hidden">
-            <img
-              src={asset(app.preview)}
-              alt={`พรีวิว WASM app ${app.name}`}
-              width={228}
-              height={342}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div aria-hidden="true" className="kru-scan absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-transparent via-[#f6c5441a] to-transparent pointer-events-none" />
-          </div>
+        <div className="rounded-[20px] p-3 bg-gradient-to-b from-[#8a6a2e] to-[#2a2012] shadow-[0_20px_50px_-18px_rgba(0,0,0,.8),0_0_60px_-14px_rgba(246,197,68,.3)]">
+          {isPet(app) ? (
+            /* pet pack → live in-browser WASM preview (decoded by the same on-device gif decoder) */
+            <WasmRunner appId={app.id} states={PET_STATES} />
+          ) : (
+            <div className="relative w-[228px] h-[342px] bg-black rounded-[11px] overflow-hidden">
+              <img
+                src={asset(app.preview)}
+                alt={`พรีวิว WASM app ${app.name}`}
+                width={228}
+                height={342}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div aria-hidden="true" className="kru-scan absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-transparent via-[#f6c5441a] to-transparent pointer-events-none" />
+            </div>
+          )}
         </div>
 
         <div className="text-center mt-4">
@@ -150,7 +160,7 @@ function WasmLightbox({ app, onClose }: { app: WasmApp; onClose: () => void }) {
             </esp-web-install-button>
             {!hasSerial && (
               <div className="mt-3 text-[11px] text-[#ff8a6b] text-center">
-                เบราว์เซอร์นี้ flash ไม่ได้ — ใช้ Chrome/Edge บนคอมพิวเตอร์
+                เบราว์เซอร์นี้ flash ไม่ได้ — ใช้เบราว์เซอร์ Chromium — Chrome / Edge / Comet บนคอมพิวเตอร์
               </div>
             )}
           </>
