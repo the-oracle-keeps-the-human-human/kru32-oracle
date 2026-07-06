@@ -15,7 +15,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "wasm+pet",
     preview: asset("wasm-apps/chaiklang/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/01-chaiklang",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/chaiklang/manifest-chaiklang.json"),
   },
   {
     id: "nova",
@@ -66,7 +67,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "pet",
     preview: asset("wasm-apps/leica/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-leica",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/leica/manifest-leica.json"),
   },
   {
     id: "lord-knight",
@@ -96,7 +98,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "pet",
     preview: asset("wasm-apps/tinky/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-tinky",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/tinky/manifest-tinky.json"),
   },
   {
     id: "tonk",
@@ -106,7 +109,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "pet",
     preview: asset("wasm-apps/tonk/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-tonk",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/tonk/manifest-tonk.json"),
   },
   {
     id: "vessel",
@@ -126,7 +130,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "pet",
     preview: asset("wasm-apps/weizen/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-weizen",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/weizen/manifest-weizen.json"),
   },
   {
     id: "itthi",
@@ -136,7 +141,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "pet",
     preview: asset("wasm-apps/itthi/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/04-itthi",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/itthi/manifest-itthi.json"),
   },
   {
     id: "vialumen",
@@ -146,7 +152,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "wasm+pet",
     preview: asset("wasm-apps/vialumen/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/05-vialumen",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/vialumen/manifest-vialumen.json"),
   },
   {
     id: "atom-oracle",
@@ -166,7 +173,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "wasm+pet",
     preview: asset("wasm-apps/gemini/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/06-gemini",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/gemini/manifest-gemini.json"),
   },
   {
     id: "novamon",
@@ -176,7 +184,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "pet",
     preview: asset("wasm-apps/novamon/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/07-nova",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/novamon/manifest-novamon.json"),
   },
   {
     id: "somtor",
@@ -196,7 +205,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "pet",
     preview: asset("wasm-apps/jizo/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/09-jizo",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/jizo/manifest-jizo.json"),
   },
   {
     id: "no10",
@@ -206,7 +216,8 @@ export const WASM_APPS: WasmApp[] = [
     kind: "pet",
     preview: asset("wasm-apps/no10/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/10-no10",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/no10/manifest-no10.json"),
   },
   {
     id: "sombo",
@@ -216,6 +227,7 @@ export const WASM_APPS: WasmApp[] = [
     kind: "pet",
     preview: asset("wasm-apps/sombo/preview.gif"),
     submissionUrl: "https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/88-sombo",
-    flashable: false,
+    flashable: true,
+    manifest: asset("wasm-apps/sombo/manifest-sombo.json"),
   },
 ];
