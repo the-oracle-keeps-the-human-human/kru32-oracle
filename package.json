@@ -12,7 +12,7 @@
     "@astrojs/react": "^6.0.1",
     "@tailwindcss/vite": "^4.3.2",
     "astro": "^7.0.6",
-    "esp-web-tools": "^10.2.1",
+    "esp-web-tools": "9.4.3",
     "improv-wifi-serial-sdk": "^2.5.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
