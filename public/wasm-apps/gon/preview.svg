@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 360" width="240" height="360" role="img" aria-label="Gon DustBoy PM2.5 preview">
+  <defs>
+    <radialGradient id="moon" cx="70%" cy="18%" r="16%">
+      <stop offset="0" stop-color="#f6e6a6"/>
+      <stop offset="1" stop-color="#f6c544" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1b39"/>
+      <stop offset="0.55" stop-color="#112a58"/>
+      <stop offset="1" stop-color="#071126"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="360" fill="url(#sky)"/>
+  <circle cx="172" cy="64" r="58" fill="url(#moon)" opacity="0.9"/>
+  <path d="M-20 260 C45 220 70 306 135 258 S220 220 270 270 L270 360 L-20 360Z" fill="#1c4a31" opacity="0.88"/>
+  <path d="M0 292 C58 260 89 326 155 286 S226 254 252 300 L252 360 L0 360Z" fill="#0d2a2a" opacity="0.94"/>
+  <g fill="#f6c544" opacity="0.85">
+    <circle cx="30" cy="46" r="1.6"/><circle cx="62" cy="92" r="1.2"/><circle cx="98" cy="36" r="1.4"/><circle cx="196" cy="120" r="1.2"/><circle cx="212" cy="82" r="1.5"/>
+  </g>
+  <rect x="22" y="132" width="196" height="100" rx="18" fill="#071126" opacity="0.72" stroke="#8a6a2e"/>
+  <text x="120" y="164" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#f4efe0">Gon DustBoy PM2.5</text>
+  <text x="120" y="191" text-anchor="middle" font-family="monospace" font-size="11" letter-spacing="1" fill="#f6c544">WASM AQI</text>
+  <text x="120" y="216" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#c9bfa6">source-only gallery card</text>
+</svg>
