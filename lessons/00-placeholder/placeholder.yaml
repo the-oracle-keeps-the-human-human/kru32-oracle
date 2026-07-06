@@ -1,0 +1,300 @@
+# placeholder.yaml — WiFi Info Placeholder
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# Flash แล้วจอจะโชว์: WiFi status, SSID, IP, MAC, signal strength, uptime
+# ใช้เป็น "first flash" — ยืนยันว่าบอร์ดทำงาน + WiFi ต่อได้
+#
+#   uvx esphome compile placeholder.yaml
+
+esphome:
+  name: kru32-placeholder
+  friendly_name: Kru32 Oracle Placeholder
+  on_boot:
+    priority: 600
+    then:
+      - light.turn_on:
+          id: backlight
+          brightness: 90%
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+  ap:
+    ssid: "Kru32-Setup"
+    password: "kru32setup"
+
+improv_serial:
+
+captive_portal:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 10s
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_rssi
+    update_interval: 10s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP"
+      id: wifi_ip
+    ssid:
+      name: "SSID"
+      id: wifi_ssid_info
+    mac_address:
+      name: "MAC"
+      id: wifi_mac
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 24
+    glyphs: "KruOaclePhd 32"
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 14
+    glyphs: "WiFSatusConecdIPMARS:UpmDhBginlNo .0123456789-"
+  - file: "gfonts://Roboto"
+    id: font_value
+    size: 20
+    glyphs: "0123456789.:ABCDEFabcdef-NoWiFiconectdg "
+  - file: "gfonts://Roboto"
+    id: font_status
+    size: 16
+    glyphs: "ReadyOKConectdig. "
+
+interval:
+  - interval: 5s
+    then:
+      - lvgl.label.update:
+          id: lbl_status
+          text: !lambda |-
+            if (id(wifi_ip).has_state() && id(wifi_ip).state.length() > 0)
+              return std::string("Connected OK");
+            return std::string("Connecting...");
+      - lvgl.label.update:
+          id: lbl_ip
+          text: !lambda |-
+            if (id(wifi_ip).has_state()) return id(wifi_ip).state;
+            return std::string("--");
+      - lvgl.label.update:
+          id: lbl_ssid
+          text: !lambda |-
+            if (id(wifi_ssid_info).has_state()) return id(wifi_ssid_info).state;
+            return std::string("--");
+      - lvgl.label.update:
+          id: lbl_mac
+          text: !lambda |-
+            if (id(wifi_mac).has_state()) return id(wifi_mac).state;
+            return std::string("--");
+      - lvgl.label.update:
+          id: lbl_rssi
+          text: !lambda |-
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%d dBm", (int)id(wifi_rssi).state);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_uptime
+          text: !lambda |-
+            int s = (int)id(uptime_sensor).state;
+            int h = s / 3600; int m = (s % 3600) / 60; int sec = s % 60;
+            char buf[24];
+            snprintf(buf, sizeof(buf), "%dh %dm %ds", h, m, sec);
+            return std::string(buf);
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: info_page
+      bg_color: 0x0B1B39
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        # Title
+        - label:
+            align: TOP_MID
+            y: 20
+            text: "Kru32 Oracle"
+            text_color: 0xF6C544
+            text_font: font_title
+
+        # Status badge
+        - label:
+            id: lbl_status
+            align: TOP_MID
+            y: 52
+            text: "Connecting..."
+            text_color: 0x00FF7F
+            text_font: font_status
+
+        # WiFi info card
+        - obj:
+            x: 16
+            y: 85
+            width: 288
+            height: 340
+            bg_color: 0x0E2145
+            bg_opa: COVER
+            radius: 14
+            border_width: 1
+            border_color: 0x22304D
+            pad_all: 16
+            widgets:
+              # -- SSID --
+              - label:
+                  align: TOP_LEFT
+                  y: 0
+                  text: "WiFi SSID"
+                  text_color: 0x8A9BBD
+                  text_font: font_label
+              - label:
+                  id: lbl_ssid
+                  align: TOP_LEFT
+                  y: 18
+                  text: "--"
+                  text_color: 0xF6C544
+                  text_font: font_value
+
+              # -- IP --
+              - label:
+                  align: TOP_LEFT
+                  y: 55
+                  text: "IP Address"
+                  text_color: 0x8A9BBD
+                  text_font: font_label
+              - label:
+                  id: lbl_ip
+                  align: TOP_LEFT
+                  y: 73
+                  text: "--"
+                  text_color: 0x4DC4FF
+                  text_font: font_value
+
+              # -- MAC --
+              - label:
+                  align: TOP_LEFT
+                  y: 110
+                  text: "MAC Address"
+                  text_color: 0x8A9BBD
+                  text_font: font_label
+              - label:
+                  id: lbl_mac
+                  align: TOP_LEFT
+                  y: 128
+                  text: "--"
+                  text_color: 0xE8E2D0
+                  text_font: font_value
+
+              # -- Signal --
+              - label:
+                  align: TOP_LEFT
+                  y: 165
+                  text: "Signal"
+                  text_color: 0x8A9BBD
+                  text_font: font_label
+              - label:
+                  id: lbl_rssi
+                  align: TOP_LEFT
+                  y: 183
+                  text: "-- dBm"
+                  text_color: 0xFFD27F
+                  text_font: font_value
+
+              # -- Uptime --
+              - label:
+                  align: TOP_LEFT
+                  y: 220
+                  text: "Uptime"
+                  text_color: 0x8A9BBD
+                  text_font: font_label
+              - label:
+                  id: lbl_uptime
+                  align: TOP_LEFT
+                  y: 238
+                  text: "0h 0m 0s"
+                  text_color: 0x00FF7F
+                  text_font: font_value
+
+              # -- Board info --
+              - label:
+                  align: TOP_LEFT
+                  y: 280
+                  text: "Board: JC3248W535"
+                  text_color: 0x5F7091
+                  text_font: font_label
+
+        # Footer
+        - label:
+            align: BOTTOM_MID
+            y: -12
+            text: "Ready"
+            text_color: 0x3A4A6C
+            text_font: font_label
