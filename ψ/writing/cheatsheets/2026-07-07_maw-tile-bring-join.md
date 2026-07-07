@@ -98,6 +98,8 @@ tmux break-pane -t %357 -d
 | `tmux select-layout` ไม่มี maw verb ครอบ | raw tmux ตอนนี้ รอ `maw layout` (#264) |
 | tile ≤ 4 panes = main-vertical, > 4 = grid | ใช้ count ที่ถูกต้องเพื่อได้ layout ที่ต้องการ |
 | maw-rs ตอบผิดได้ — verify กับ source เสมอ | ถาม confirm + ให้ maw-rs ขุด source ก่อนรัน |
+| **omx --madmax HUD กระพริบ** — `maw tile` set `pane-border-status bottom` → spinner '⠐ Claude Code' ที่ขอบล่าง | `tmux set pane-border-status off` (หรือ `top`) · maw split/join ใช้ top อยู่แล้ว จึงไม่กระพริบ |
+| ⚠️ ทฤษฎี "pane height <45 = ไม่มี HUD" **ผิด** (red herring) | อาการเหมือน แต่เหตุจริงคือ pane-border ล่าง — verify pane-border ก่อนสรุป |
 
 ---
 
