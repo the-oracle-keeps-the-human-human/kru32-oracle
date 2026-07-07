@@ -195,106 +195,107 @@ lvgl:
             text_color: 0x00FF7F
             text_font: font_status
 
-        # WiFi info card
+        # WiFi info card — each row = label(14px) + value(18px) + 8px gap = ~40px per row
+        # 5 rows × 40 = 200, + board line 20 + padding 24 = ~244 inside
         - obj:
             x: 16
-            y: 85
+            y: 80
             width: 288
-            height: 370
+            height: 310
             bg_color: 0x0E2145
             bg_opa: COVER
             radius: 14
             border_width: 1
             border_color: 0x22304D
-            pad_all: 16
+            pad_all: 12
             widgets:
-              # -- SSID --
+              # -- SSID -- y:0
               - label:
                   align: TOP_LEFT
                   y: 0
-                  text: "WiFi SSID"
+                  text: "SSID"
                   text_color: 0x8A9BBD
-                  text_font: font_label
+                  text_font: font_small
               - label:
                   id: lbl_ssid
                   align: TOP_LEFT
-                  y: 18
+                  y: 16
                   text: "--"
                   text_color: 0xF6C544
-                  text_font: font_value
+                  text_font: font_body
 
-              # -- IP --
+              # -- IP -- y:50
               - label:
                   align: TOP_LEFT
-                  y: 60
-                  text: "IP Address"
+                  y: 50
+                  text: "IP"
                   text_color: 0x8A9BBD
-                  text_font: font_label
+                  text_font: font_small
               - label:
                   id: lbl_ip
                   align: TOP_LEFT
-                  y: 78
+                  y: 66
                   text: "--"
                   text_color: 0x4DC4FF
-                  text_font: font_value
+                  text_font: font_body
 
-              # -- MAC --
+              # -- MAC -- y:100
               - label:
                   align: TOP_LEFT
-                  y: 120
-                  text: "MAC Address"
+                  y: 100
+                  text: "MAC"
                   text_color: 0x8A9BBD
-                  text_font: font_label
+                  text_font: font_small
               - label:
                   id: lbl_mac
                   align: TOP_LEFT
-                  y: 138
+                  y: 116
                   text: "--"
                   text_color: 0xE8E2D0
-                  text_font: font_value
+                  text_font: font_body
 
-              # -- Signal --
+              # -- Signal -- y:150
               - label:
                   align: TOP_LEFT
-                  y: 180
+                  y: 150
                   text: "Signal"
                   text_color: 0x8A9BBD
-                  text_font: font_label
+                  text_font: font_small
               - label:
                   id: lbl_rssi
                   align: TOP_LEFT
-                  y: 198
+                  y: 166
                   text: "-- dBm"
                   text_color: 0xFFD27F
-                  text_font: font_value
+                  text_font: font_body
 
-              # -- Uptime --
+              # -- Uptime -- y:200
               - label:
                   align: TOP_LEFT
-                  y: 240
+                  y: 200
                   text: "Uptime"
                   text_color: 0x8A9BBD
-                  text_font: font_label
+                  text_font: font_small
               - label:
                   id: lbl_uptime
                   align: TOP_LEFT
-                  y: 258
+                  y: 216
                   text: "0h 0m 0s"
                   text_color: 0x00FF7F
-                  text_font: font_value
+                  text_font: font_body
 
-              # -- Board info --
+              # -- Board -- y:256
               - label:
                   align: TOP_LEFT
-                  y: 305
-                  text: "Board: JC3248W535"
+                  y: 256
+                  text: "JC3248W535"
                   text_color: 0x5F7091
-                  text_font: font_label
+                  text_font: font_small
 
         # Footer
         - label:
             align: BOTTOM_MID
-            y: -12
+            y: -10
             text: "Ready"
             text_color: 0x3A4A6C
-            text_font: font_label
+            text_font: font_small
