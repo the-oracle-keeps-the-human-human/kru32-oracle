@@ -232,17 +232,24 @@ export default function WasmGallery({ apps = WASM_APPS as WasmApp[] }: { apps?: 
         <div className="flex flex-col sm:flex-row items-start gap-5 max-w-[600px]">
           {/* Screen preview — จำลองหน้าจอบอร์ด 320×480 ย่อส่วน */}
           <div className="shrink-0 rounded-[14px] p-[3px] bg-gradient-to-b from-[#8a6a2e] to-[#3a2c14] shadow-[0_10px_30px_-14px_rgba(0,0,0,.8)]">
-            <div className="w-[140px] h-[210px] rounded-[10px] bg-[#0B1B39] overflow-hidden p-3 flex flex-col" style={{fontFamily:"'Roboto',sans-serif"}}>
-              <div className="text-[9px] font-bold text-[#F6C544] text-center">Kru32 Oracle</div>
-              <div className="text-[7px] text-[#00FF7F] text-center mt-0.5">Connected OK</div>
-              <div className="mt-2 rounded-[6px] bg-[#0E2145] border border-[#22304D] p-2 flex-1 flex flex-col gap-1.5">
-                <div><span className="text-[6px] text-[#8A9BBD]">WiFi SSID</span><br/><span className="text-[8px] text-[#F6C544] font-medium">kru32-dev</span></div>
-                <div><span className="text-[6px] text-[#8A9BBD]">IP Address</span><br/><span className="text-[8px] text-[#4DC4FF] font-medium">192.168.1.x</span></div>
-                <div><span className="text-[6px] text-[#8A9BBD]">MAC Address</span><br/><span className="text-[8px] text-[#E8E2D0] font-medium">AA:BB:CC:DD:EE</span></div>
-                <div><span className="text-[6px] text-[#8A9BBD]">Signal</span><br/><span className="text-[8px] text-[#FFD27F] font-medium">-45 dBm</span></div>
-                <div><span className="text-[6px] text-[#8A9BBD]">Uptime</span><br/><span className="text-[8px] text-[#00FF7F] font-medium">0h 2m 30s</span></div>
+            <div className="w-[160px] h-[240px] rounded-[10px] bg-[#0B1B39] overflow-hidden px-2.5 py-3 flex flex-col" style={{fontFamily:"ui-monospace,SFMono-Regular,Menlo,monospace",fontSize:0}}>
+              <div className="text-[10px] font-bold text-[#F6C544] text-center leading-tight">Kru32 Oracle</div>
+              <div className="text-[7px] text-[#00FF7F] text-center mt-0.5 leading-tight">● Connected</div>
+              <div className="mt-1.5 rounded-[6px] bg-[#0E2145] border border-[#22304D] px-2 py-1.5 flex-1 grid grid-rows-5 gap-0">
+                {([
+                  ["SSID", "kru32-dev", "#F6C544"],
+                  ["IP", "192.168.1.x", "#4DC4FF"],
+                  ["MAC", "AA:BB:CC:DD:EE", "#E8E2D0"],
+                  ["Signal", "-45 dBm", "#FFD27F"],
+                  ["Uptime", "0h 2m 30s", "#00FF7F"],
+                ] as const).map(([label, val, color]) => (
+                  <div key={label} className="flex flex-col justify-center">
+                    <span className="text-[6px] leading-none text-[#6b7fa0]">{label}</span>
+                    <span className="text-[9px] leading-tight font-medium" style={{color}}>{val}</span>
+                  </div>
+                ))}
               </div>
-              <div className="text-[5px] text-[#3A4A6C] text-center mt-1">JC3248W535</div>
+              <div className="text-[6px] text-[#3A4A6C] text-center mt-1 leading-none">JC3248W535</div>
             </div>
           </div>
 
