@@ -15,9 +15,9 @@ const hasToc = toc.length > 1;
 // บทความ blog ตั้ง backHref: /blog ใน frontmatter เพื่อกลับไปหน้ารวมบทความ (default = หน้าแรก)
 const backHref = frontmatter?.backHref ?? "/";
 const backLabel = frontmatter?.backLabel ?? "← กลับหน้ารวมบท";
-// ดาวน์โหลด Markdown ต้นฉบับ — build จะ copy src/pages/blog/*.md → public/blog-md/ (scripts/sync-blog-md.ts)
-// slug จาก URL path สุดท้าย (เฉพาะบทความ blog ที่ตั้ง mdSlug ใน frontmatter)
-const mdSlug = frontmatter?.mdSlug;
+// ดาวน์โหลด Markdown ต้นฉบับ — build copy src/content/blog/* → public/blog-md/ (sync-blog-md.ts)
+// mdFile = ชื่อไฟล์ + นามสกุลจริง (.md / .mdx) ตั้งใน [...slug].astro
+const mdFile = frontmatter?.mdFile;
 // byline — ผู้เขียน + โมเดล + วันที่ (provenance: ให้ผู้อ่านรู้ว่า AI ตัวไหนเขียน)
 const author = frontmatter?.author;
 const model = frontmatter?.model;
@@ -40,9 +40,9 @@ const displayDate = dateStr
   <div class={`relative mx-auto px-6 pt-3 pb-16 ${hasToc ? "max-w-[1040px]" : "max-w-[760px]"}`}>
     <div class="sticky top-0 z-30 -mx-6 flex items-center justify-between gap-3 border-b border-[#1a2838]/60 bg-[#0b1b39]/80 px-6 py-3 backdrop-blur-md">
       <a href={`${base}${backHref}`} class="font-display text-[11px] text-[#4dc4ff] hover:underline">{backLabel}</a>
-      {mdSlug && (
+      {mdFile && (
         <a
-          href={`${base}/blog-md/${mdSlug}.md`}
+          href={`${base}/blog-md/${mdFile}`}
           download
           class="font-display text-[11px] text-[#6f8ba0] hover:text-[#4dc4ff] hover:underline"
         >📄 ดาวน์โหลด Markdown</a>

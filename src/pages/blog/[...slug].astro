@@ -9,8 +9,9 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
-// mdSlug = entry id → ลิงก์ดาวน์โหลด public/blog-md/<id>.md (sync-blog-md.ts)
-const frontmatter = { ...post.data, mdSlug: post.id };
+// ไฟล์ดาวน์โหลด = id + นามสกุลจริง (.md หรือ .mdx) — sync-blog-md.ts copy ไป public/blog-md/
+const ext = post.filePath && post.filePath.endsWith(".mdx") ? "mdx" : "md";
+const frontmatter = { ...post.data, mdFile: `${post.id}.${ext}` };
 ---
 
 <Prose frontmatter={frontmatter} headings={headings}>

@@ -4,6 +4,8 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { execSync } from "child_process";
 
+import mdx from "@astrojs/mdx";
+
 const sha = execSync("git rev-parse --short HEAD").toString().trim();
 const ts = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 16).replace("T", " ");
 
@@ -12,7 +14,7 @@ const ts = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 16).replac
 export default defineConfig({
   site: "https://the-oracle-keeps-the-human-human.github.io",
   base: "/kru32-oracle",
-  integrations: [react(), sitemap()],
+  integrations: [react(), sitemap(), mdx()],
   vite: {
     plugins: [tailwindcss()],
     define: {

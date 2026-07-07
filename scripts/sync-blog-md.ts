@@ -23,14 +23,14 @@ async function copyBlogMarkdown() {
 
   const entries = await readdir(srcBlogDir, { withFileTypes: true });
   for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith(".md")) {
+    // copy ทั้ง .md และ .mdx โดยคง extension เดิม (ให้ปุ่มดาวน์โหลดชี้ถูกไฟล์)
+    if (!entry.isFile() || !/\.mdx?$/.test(entry.name)) {
       continue;
     }
-    const slug = entry.name.replace(/\.md$/, "");
     const src = join(srcBlogDir, entry.name);
-    const dst = join(publicBlogDir, `${slug}.md`);
+    const dst = join(publicBlogDir, entry.name);
     await cp(src, dst);
-    console.info(`[sync-blog-md] copied ${slug}.md`);
+    console.info(`[sync-blog-md] copied ${entry.name}`);
   }
 }
 

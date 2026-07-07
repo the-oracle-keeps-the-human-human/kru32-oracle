@@ -4,7 +4,7 @@ import { z } from "astro/zod";
 
 // Blog collection — zod schema บังคับทุก field (no fallback: ขาด field = build fail, ไม่ default เงียบ ๆ)
 const blog = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.md", base: "./src/content/blog" }),
+  loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: "./src/content/blog" }),
   schema: z.object({
     title: z.string(),
     description: z.string(),

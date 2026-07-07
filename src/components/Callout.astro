@@ -1,0 +1,26 @@
+---
+// Callout — กล่องเน้นข้อความในบทความ (ใช้ได้เฉพาะไฟล์ .mdx)
+// <Callout type="tip">...</Callout>
+interface Props {
+  type?: "tip" | "warn" | "note";
+}
+const { type = "note" } = Astro.props;
+const styles: Record<string, { border: string; bg: string; accent: string; icon: string; label: string }> = {
+  tip: { border: "#2d5c3a", bg: "#0e2a1a", accent: "#7fe0a6", icon: "💡", label: "เคล็ดลับ" },
+  warn: { border: "#5c2a26", bg: "#2a1210", accent: "#ff8a6b", icon: "⚠️", label: "ระวัง" },
+  note: { border: "#173056", bg: "#0e2145", accent: "#4dc4ff", icon: "📌", label: "หมายเหตุ" },
+};
+const s = styles[type];
+---
+
+<div
+  class="my-5 rounded-xl border p-4"
+  style={`border-color:${s.border}; background:${s.bg}66`}
+>
+  <div class="flex items-center gap-2 font-display text-[13px] font-semibold" style={`color:${s.accent}`}>
+    <span>{s.icon}</span><span>{s.label}</span>
+  </div>
+  <div class="mt-2 text-[14px] leading-relaxed text-[#c9d6e6]">
+    <slot />
+  </div>
+</div>

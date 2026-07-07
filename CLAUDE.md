@@ -29,7 +29,8 @@ Kru32 Oracle — เว็บ flasher + คอร์สสอน ESP32 display (
 - **Layout**: `src/layouts/Prose.astro` (`.kru-prose` styling + byline + download + Rule-6)
 - **Render**: `src/pages/blog/[...slug].astro` (`getCollection` + `render`), index = `src/pages/blog/index.astro`
 - **เขียนบทความใหม่**: `bun run new:post "ชื่อ" "tag1,tag2"` → สร้าง .md ครบ schema
-- Markdown ดาวน์โหลดได้: `scripts/sync-blog-md.ts` copy → `public/blog-md/`
+- Markdown ดาวน์โหลดได้: `scripts/sync-blog-md.ts` copy .md/.mdx → `public/blog-md/`
+- **MDX** (`@astrojs/mdx`): ไฟล์ `.mdx` แทรก component ในบทความได้ (เช่น `src/components/Callout.astro`) — schema zod เดิมใช้ได้ทั้ง .md/.mdx · ใช้ .mdx เฉพาะบทความที่ต้องการ interactive
 
 ## GEO/AEO (AI engine อ่าน+อ้างอิงได้)
 `public/llms.txt` + `llms-full.txt` · `public/robots.txt` (allow GPTBot/ClaudeBot/PerplexityBot/Google-Extended/ChatGPT-User) · sitemap · JSON-LD (`src/components/StructuredData.astro`) · OG/canonical ใน `Base.astro`
