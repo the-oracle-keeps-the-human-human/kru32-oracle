@@ -75,7 +75,7 @@ const displayDate = dateStr
           </nav>
         </aside>
       )}
-      <article class={`kru-prose min-w-0 ${hasToc ? "order-1 lg:order-2" : ""}`}>
+      <article class={`kru-prose min-w-0 rounded-2xl bg-[#091324]/55 px-5 sm:px-7 py-5 border border-[#141f33]/70 ${hasToc ? "order-1 lg:order-2" : ""}`}>
         <slot />
       </article>
     </div>
@@ -88,7 +88,8 @@ const displayDate = dateStr
 
 <style is:global>
   /* prose styling — Tailwind reset ล้างหมด ต้องเซ็ตเอง (ธีมอวกาศเดิม) */
-  .kru-prose { color: #a8c0d0; line-height: 1.75; font-size: 15px; }
+  /* อ่านบทความยาว: ตัวหนังสือ neutral+สว่างขึ้น (ลดการคลื่นกับน้ำเงิน) + พื้นเข้มขึ้น = contrast อ่านง่าย */
+  .kru-prose { color: #c6d0dc; line-height: 1.78; font-size: 15px; }
   .kru-prose h1 {
     font-family: "Chakra Petch", system-ui, sans-serif; font-weight: 700;
     font-size: 1.75rem; color: #e8f2fa; margin: 0 0 .5rem;
