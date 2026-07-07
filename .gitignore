@@ -18,3 +18,5 @@ secrets.yaml
 
 # OS
 .DS_Store
+# Learn: ignore origin symlinks (source lives in ghq)
+ψ/learn/**/origin
