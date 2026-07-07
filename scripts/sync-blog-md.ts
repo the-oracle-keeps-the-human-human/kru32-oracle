@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 
 const projectRoot = fileURLToPath(new URL("..", import.meta.url));
-const srcBlogDir = join(projectRoot, "src/pages/blog");
+const srcBlogDir = join(projectRoot, "src/content/blog");
 const publicBlogDir = join(projectRoot, "public/blog-md");
 
 async function copyBlogMarkdown() {
