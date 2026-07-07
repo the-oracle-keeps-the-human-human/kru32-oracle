@@ -7,7 +7,8 @@
     "build": "bun run scripts/sync-blog-md.ts && astro build",
     "preview": "astro preview",
     "gen:previews": "bun run src/scripts/gen-capture.ts",
-    "new:post": "bun run scripts/new-post.ts"
+    "new:post": "bun run scripts/new-post.ts",
+    "blog": "bun run scripts/blog-cli.ts"
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.2",
