@@ -1,0 +1,21 @@
+{
+  "name": "blog",
+  "version": "0.1.0",
+  "entry": "./index.ts",
+  "runtime": "bun-dev",
+  "sdk": "^1.0.0",
+  "description": "อ่าน blog ของ oracle จาก CLI — maw blog <oracle>",
+  "author": "Kru32 Oracle",
+  "cli": {
+    "command": "blog",
+    "aliases": ["b"],
+    "help": "maw blog [oracle] — list · maw blog read <slug> [oracle] — อ่านเนื้อหา"
+  },
+  "api": {
+    "path": "/api/blog",
+    "methods": ["GET"]
+  },
+  "weight": 10,
+  "license": "MIT",
+  "schemaVersion": 1
+}
