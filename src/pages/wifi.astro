@@ -33,25 +33,21 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       <p id="port-status" class="text-[12px] text-[#8a9bbd] text-center max-w-[380px]"></p>
     </div>
 
-    <!-- Step 2: ต่อ WiFi (ซ่อนไว้จนกว่าจะเลือกพอร์ตแล้ว) -->
-    <div id="wifi-step" class="hidden mt-6 flex flex-col items-center gap-3">
+    <!-- Step 2: ต่อ WiFi (แสดงตั้งแต่แรก แต่สีเทา disabled จนกว่าจะเลือกพอร์ต) -->
+    <div id="wifi-step" class="mt-6 flex flex-col items-center gap-3 opacity-40 pointer-events-none transition-opacity duration-300">
       <div class="flex items-center gap-2 mb-1">
         <span class="font-display font-bold text-[#f6c544] text-lg">2</span>
-        <span class="text-[13px] text-[#c9bfa6]">ใส่ชื่อ WiFi + รหัสผ่าน</span>
+        <span id="wifi-label" class="text-[13px] text-[#c9bfa6]">ใส่ชื่อ WiFi + รหัสผ่าน <span class="text-[11px] text-[#5f7091]">— เลือกพอร์ตก่อน</span></span>
       </div>
-      <improv-wifi-serial-launch-button>
-        <button
-          slot="activate"
-          class="kru-pulse w-full max-w-[320px] py-3 rounded-[10px] font-display font-bold text-sm tracking-wide text-[#1a1204] bg-gradient-to-br from-[#4dc4ff] to-[#2a88cc] hover:-translate-y-px transition-transform cursor-pointer border-0"
-        >
-          📶 ต่อ WiFi ให้บอร์ด
-        </button>
-        <span slot="unsupported" class="block mt-2 max-w-[380px] text-[11px] text-[#ff8a6b] text-center leading-relaxed">
-          เบราว์เซอร์นี้ไม่รองรับ Improv<br />ใช้ Chromium (Chrome / Edge / Comet) บนคอมพิวเตอร์
-        </span>
-      </improv-wifi-serial-launch-button>
-      <p class="text-[11px] text-[#8a9bbd] text-center max-w-[380px]">
-        เลือกพอร์ตเดิมอีกครั้ง → ใส่ชื่อ WiFi + รหัสผ่าน → บอร์ดต่อเน็ตเอง
+      <button
+        id="wifi-btn"
+        class="w-full max-w-[320px] py-3 rounded-[10px] font-display font-bold text-sm tracking-wide text-[#1a1204] bg-gradient-to-br from-[#4dc4ff] to-[#2a88cc] cursor-not-allowed border-0"
+        disabled
+      >
+        📶 ต่อ WiFi ให้บอร์ด
+      </button>
+      <p id="wifi-hint" class="text-[11px] text-[#5f7091] text-center max-w-[380px]">
+        เลือกพอร์ต Serial ก่อน แล้วปุ่มนี้จะใช้งานได้
       </p>
     </div>
 
@@ -59,10 +55,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       const pickBtn = document.getElementById("pick-port");
       const portStatus = document.getElementById("port-status");
       const wifiStep = document.getElementById("wifi-step");
+      const wifiBtn = document.getElementById("wifi-btn");
+      const wifiLabel = document.getElementById("wifi-label");
+      const wifiHint = document.getElementById("wifi-hint");
+      const hasSerial = "serial" in navigator;
 
-      if (!("serial" in navigator)) {
-        if (pickBtn) pickBtn.textContent = "❌ เบราว์เซอร์ไม่รองรับ Serial";
-        if (pickBtn) pickBtn.disabled = true;
+      if (!hasSerial) {
+        if (pickBtn) { pickBtn.textContent = "❌ เบราว์เซอร์ไม่รองรับ Serial"; pickBtn.disabled = true; }
         if (portStatus) portStatus.innerHTML = 'ใช้ <b style="color:#f4efe0">Chrome / Edge / Comet</b> บนคอมพิวเตอร์';
       } else if (pickBtn) {
         pickBtn.addEventListener("click", async () => {
@@ -77,13 +76,25 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
             if (portStatus) portStatus.innerHTML = `✅ เจอบอร์ดแล้ว — <b style="color:#7fe0a6">${label}</b>`;
             pickBtn.textContent = "✅ เลือกพอร์ตแล้ว";
-            pickBtn.classList.remove("from-[#f6c544]", "to-[#e0a838]", "text-[#1a1204]");
+            pickBtn.classList.remove("from-[#f6c544]", "to-[#e0a838]", "text-[#1a1204]", "kru-pulse");
             pickBtn.classList.add("from-[#2d5c3a]", "to-[#1a4028]", "text-[#7fe0a6]", "border", "border-[#2d5c3a]");
 
             if (wifiStep) {
-              wifiStep.classList.remove("hidden");
-              wifiStep.classList.add("flex");
-              wifiStep.scrollIntoView({ behavior: "smooth", block: "center" });
+              wifiStep.classList.remove("opacity-40", "pointer-events-none");
+              wifiStep.classList.add("opacity-100");
+            }
+            if (wifiLabel) wifiLabel.innerHTML = 'ใส่ชื่อ WiFi + รหัสผ่าน';
+            if (wifiHint) wifiHint.textContent = 'เลือกพอร์ตเดิมอีกครั้ง → ใส่ WiFi → บอร์ดต่อเน็ตเอง';
+
+            // Replace static button with live Improv button (bypass bad detect)
+            if (wifiBtn) {
+              const improv = document.createElement("improv-wifi-serial-launch-button");
+              const btn = document.createElement("button");
+              btn.setAttribute("slot", "activate");
+              btn.className = "kru-pulse w-full max-w-[320px] py-3 rounded-[10px] font-display font-bold text-sm tracking-wide text-[#1a1204] bg-gradient-to-br from-[#4dc4ff] to-[#2a88cc] hover:-translate-y-px transition-transform cursor-pointer border-0";
+              btn.textContent = "📶 ต่อ WiFi ให้บอร์ด";
+              improv.appendChild(btn);
+              wifiBtn.replaceWith(improv);
             }
           } catch (e) {
             if (portStatus) portStatus.textContent = "⚠️ " + (e instanceof Error ? e.message : String(e));
