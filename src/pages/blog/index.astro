@@ -2,38 +2,39 @@
 import Base from "../../layouts/Base.astro";
 import { getCollection } from "astro:content";
 
+const THAI_MONTHS_FULL = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+];
+const THAI_MONTHS_SHORT = [
+  "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+  "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
+];
+
 interface BlogPost {
   title: string;
   description: string;
-  dateMs: number;
-  displayDate: string;
+  year: number;
+  month: number; // 1-12
+  day: number;
+  monthKey: string; // "YYYY-MM"
+  sortMs: number;
   url: string;
   tags: string[];
-  primaryTag: string;
   author: string;
   model: string;
 }
 
+interface MonthGroup {
+  key: string;
+  label: string; // "กรกฎาคม 2026"
+  posts: BlogPost[];
+}
+
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-// data layer = zod-validated content collection (type-safe, ไม่มี any/fallback — schema บังคับ field)
+// data layer = zod-validated content collection (type-safe — schema บังคับ field, ไม่มี any/fallback)
 const entries = await getCollection("blog");
-
-const formatDate = (value: string): string => {
-  const [year, month, day] = value.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(Date.UTC(year, month - 1, day)));
-};
-
-const slugify = (value: string): string =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9ก-๙\s_-]/g, "")
-    .trim()
-    .replace(/[\s_-]+/g, "-");
 
 const posts: BlogPost[] = entries
   .map((entry) => {
@@ -41,134 +42,120 @@ const posts: BlogPost[] = entries
     return {
       title: entry.data.title,
       description: entry.data.description,
-      dateMs: Date.UTC(year, month - 1, day),
-      displayDate: formatDate(entry.data.date),
+      year,
+      month,
+      day,
+      monthKey: `${year}-${String(month).padStart(2, "0")}`,
+      sortMs: Date.UTC(year, month - 1, day),
       url: `${base}/blog/${entry.id}/`,
       tags: entry.data.tags,
-      primaryTag: entry.data.tags[0],
       author: entry.data.author,
       model: entry.data.model,
     };
   })
-  .sort((a, b) =>
-    a.dateMs === b.dateMs ? a.title.localeCompare(b.title) : b.dateMs - a.dateMs,
-  );
+  .sort((a, b) => (a.sortMs === b.sortMs ? a.title.localeCompare(b.title) : b.sortMs - a.sortMs));
 
-const groups = posts.reduce((acc, post) => {
-  (acc[post.primaryTag] ??= []).push(post);
-  return acc;
-}, {} as Record<string, BlogPost[]>);
-
-const categories = Object.keys(groups).sort((a, b) => a.localeCompare(b, "th"));
-
+// จัดกลุ่มตามเดือน (ใหม่ → เก่า) — navigate ตามเดือน + timeline บอกวัน/เดือนชัด
+const monthMap = new Map<string, MonthGroup>();
+for (const post of posts) {
+  const existing = monthMap.get(post.monthKey);
+  if (existing) {
+    existing.posts.push(post);
+  } else {
+    monthMap.set(post.monthKey, {
+      key: post.monthKey,
+      label: `${THAI_MONTHS_FULL[post.month - 1]} ${post.year}`,
+      posts: [post],
+    });
+  }
+}
+const months: MonthGroup[] = [...monthMap.values()];
 const hasPosts = posts.length > 0;
-// sidebar มีประโยชน์เมื่อมีหลายหมวด — หมวดเดียวให้ทุ่มพื้นที่ให้บทความ (แก้หน้าโล่ง)
-const showSidebar = categories.length >= 2;
 ---
 
-<Base title="บทความ / Blog — Kru32 Oracle" description="รวมบทความ เบื้องหลังทีม วงจรงาน และเก็บประสบการณ์จริงจาก Kru32 Oracle">
-  <div class="relative max-w-[1100px] mx-auto px-4 sm:px-6 py-8 pb-16">
+<Base title="บทความ / Blog — Kru32 Oracle" description="รวมบทความ เบื้องหลังทีม วงจรงาน และประสบการณ์จริงจาก Kru32 Oracle — จัดตามเดือน">
+  <div class="relative max-w-[1040px] mx-auto px-4 sm:px-6 py-8 pb-16">
     <a href={`${base}/`} class="font-display text-[11px] text-[#4dc4ff] hover:underline">← หน้าแรก</a>
 
-    <header class="mt-6 rounded-2xl border border-[#173056] bg-[#0e2145]/70 p-6 shadow-[0_18px_60px_rgba(0,0,0,.25)]">
+    <header class="mt-6 text-center">
       <div class="font-display text-[11px] tracking-[.3em] uppercase text-[#4dc4ff]">Blog</div>
-      <h1 class="font-display text-[2rem] md:text-[2.25rem] font-bold text-[#e8f2fa] mt-1 [text-shadow:0_0_24px_rgba(77,196,255,.35)]">
-        บทความที่อ่านเข้าใจง่าย
+      <h1 class="font-display text-[2rem] md:text-[2.4rem] font-bold text-[#e8f2fa] mt-1 [text-shadow:0_0_24px_rgba(77,196,255,.35)]">
+        เบื้องหลัง
       </h1>
-      <p class="text-[#a8c0d0] text-sm mt-3 max-w-2xl leading-relaxed">
-        รวบรวมบันทึกการทำงานจริงจากทีม: ตั้งทีม AI, flash firmware, workflow, และบทเรียนที่เจอจริง
-        สำหรับให้เข้าใจง่ายเร็ว — ใหม่ที่เด่นสุดอยู่บนสุด
+      <p class="text-[#a8c0d0] text-sm mt-3 max-w-xl mx-auto leading-relaxed">
+        บันทึกการทำงานจริงจากทีม — จัดตามเดือน ใหม่สุดอยู่บน
       </p>
     </header>
 
-    <div class={`mt-8 grid grid-cols-1 gap-6 items-start ${showSidebar ? "lg:grid-cols-[260px_1fr]" : ""}`}>
-      {showSidebar && (
-      <aside class="rounded-2xl border border-[#1a2838] bg-[#0e2145]/45 p-4 lg:sticky lg:top-24">
-        <h2 class="font-display text-sm tracking-[.2em] uppercase text-[#4dc4ff]">หมวดบทความ</h2>
-        <p class="mt-2 text-[12px] text-[#6f8ba0]">เลือกหมวดเพื่อดูตามกลุ่ม และอ่าน timeline ตามเวลาได้ทันที</p>
-
-        <ul class="mt-4 flex flex-col gap-2">
-          {categories.map((category) => {
-            const id = slugify(category);
-            const count = groups[category]?.length ?? 0;
-            return (
+    <div class={`mt-9 grid grid-cols-1 gap-8 items-start ${hasPosts ? "lg:grid-cols-[190px_1fr]" : ""}`}>
+      {hasPosts && (
+        <aside class="lg:sticky lg:top-24">
+          <h2 class="font-display text-[11px] tracking-[.2em] uppercase text-[#4dc4ff]">คลังบทความ</h2>
+          <ul class="mt-3 flex flex-col gap-1">
+            {months.map((m) => (
               <li>
                 <a
-                  href={`#${id}`}
-                  class="group flex items-center justify-between rounded-lg border border-transparent px-3 py-2 text-sm text-[#a8c0d0] transition-all hover:border-[#4dc4ff]/50 hover:text-[#e8f2fa]"
+                  href={`#${m.key}`}
+                  class="group flex items-center justify-between rounded-lg px-3 py-2 text-[13px] text-[#a8c0d0] transition-all hover:bg-[#0e2145]/70 hover:text-[#e8f2fa]"
                 >
-                  <span>{category}</span>
-                  <span class="ml-2 rounded-full border border-[#22314f] px-2 py-0.5 text-[11px] text-[#6f8ba0] group-hover:border-[#4dc4ff] group-hover:text-[#4dc4ff]">
-                    {count}
+                  <span>{m.label}</span>
+                  <span class="ml-2 rounded-full border border-[#22314f] px-1.5 text-[11px] text-[#6f8ba0] group-hover:border-[#4dc4ff] group-hover:text-[#4dc4ff]">
+                    {m.posts.length}
                   </span>
                 </a>
               </li>
-            );
-          })}
-          {!hasPosts && (
-            <li class="text-[12px] text-[#6f8ba0] py-2">ยังไม่มีหมวด</li>
-          )}
-        </ul>
-      </aside>
+            ))}
+          </ul>
+        </aside>
       )}
 
-      <main class="space-y-8">
+      <main class="space-y-10">
         {!hasPosts ? (
-          <p class="rounded-lg border border-[#1a2838] bg-[#0e2145]/45 p-6 text-sm text-[#6f8ba0]">ยังไม่มีบทความในขณะนี้</p>
+          <p class="rounded-xl border border-[#1a2838] bg-[#0e2145]/45 p-6 text-sm text-[#6f8ba0]">ยังไม่มีบทความในขณะนี้</p>
         ) : (
-          categories.map((category) => {
-            const postsByCategory = groups[category] ?? [];
-            const id = slugify(category);
-
-            return (
-              <section id={id} class="rounded-2xl border border-[#1a2838] bg-[#0e2145]/45 p-5">
-                <header class="flex items-center justify-between gap-3 border-b border-[#1a2838] pb-3">
-                  <h2 class="font-display text-base md:text-lg font-bold text-[#e8f2fa]">หมวด: {category}</h2>
-                  <span class="text-[11px] uppercase tracking-wide text-[#6f8ba0]">
-                    {postsByCategory.length} เรื่อง
-                  </span>
-                </header>
-
-                <ol class="mt-5 space-y-4">
-                  {postsByCategory.map((post) => (
-                    <li class="relative border-l-2 border-[#244067] pl-4">
-                      <div class="absolute -left-[6px] top-2 h-3 w-3 rounded-full border border-[#4dc4ff] bg-[#0e2145]" />
-                      <a
-                        href={post.url}
-                        class="group block rounded-xl border border-[#173056] bg-[#0a1734]/80 p-4 transition hover:border-[#4dc4ff]/60 hover:bg-[#152e58]/80"
-                      >
-                        <div class="flex flex-wrap items-center gap-2 text-[11px] text-[#6f8ba0]">
-                          <time class="font-mono tracking-wide">{post.displayDate}</time>
-                          <span class="text-[#2d4e7a]">·</span>
-                          <span class="font-display uppercase tracking-[.18em]">{category}</span>
-                          {post.author && (<><span class="text-[#2d4e7a]">·</span><span>{post.author}</span></>)}
-                          {post.model && (<span class="font-mono text-[#4dc4ff]">{post.model}</span>)}
+          months.map((m) => (
+            <section id={m.key} class="scroll-mt-24">
+              <h2 class="font-display text-lg font-bold text-[#4dc4ff] tracking-wide [text-shadow:0_0_18px_rgba(77,196,255,.25)]">
+                {m.label}
+              </h2>
+              <ol class="mt-4 border-l border-[#22314f] ml-3">
+                {m.posts.map((post) => (
+                  <li class="relative pl-6 pb-6 last:pb-0">
+                    <span class="absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-[#4dc4ff] bg-[#0b1b39]"></span>
+                    <a
+                      href={post.url}
+                      class="group flex gap-4 rounded-xl border border-[#173056] bg-[#0e2145]/60 p-4 transition hover:border-[#4dc4ff]/60 hover:bg-[#152e58]/70"
+                    >
+                      <div class="shrink-0 w-14 rounded-lg border border-[#22314f] bg-[#0a1734] px-2 py-1.5 text-center">
+                        <div class="font-mono text-xl font-bold leading-none text-[#e8f2fa]">
+                          {String(post.day).padStart(2, "0")}
                         </div>
-                        <h3 class="mt-2 font-display text-lg leading-tight text-[#e8f2fa] group-hover:text-[#4dc4ff] transition-colors">
+                        <div class="font-display text-[11px] text-[#6f8ba0] mt-0.5">
+                          {THAI_MONTHS_SHORT[post.month - 1]}
+                        </div>
+                      </div>
+                      <div class="min-w-0">
+                        <h3 class="font-display text-lg leading-tight text-[#e8f2fa] group-hover:text-[#4dc4ff] transition-colors">
                           {post.title}
                         </h3>
                         {post.description && (
-                          <p class="mt-2 text-[13px] text-[#a8c0d0] leading-relaxed max-w-3xl">
-                            {post.description}
-                          </p>
+                          <p class="mt-1.5 text-[13px] text-[#a8c0d0] leading-relaxed">{post.description}</p>
                         )}
-                        <div class="mt-3 flex flex-wrap gap-2">
+                        <div class="mt-2.5 flex flex-wrap items-center gap-2">
                           {post.tags.map((tag) => (
-                            <span class="rounded-full border border-[#2d4e7a] px-2 py-0.5 text-[11px] text-[#9eb3d6]">
-                              #{tag}
-                            </span>
+                            <span class="rounded-full border border-[#2d4e7a] px-2 py-0.5 text-[11px] text-[#9eb3d6]">#{tag}</span>
                           ))}
+                          <span class="text-[11px] text-[#6f8ba0]">· {post.author}</span>
+                          {post.model && <span class="font-mono text-[11px] text-[#4dc4ff]">{post.model}</span>}
                         </div>
-                        <span class="mt-3 inline-flex items-center gap-2 text-xs text-[#4dc4ff] group-hover:gap-3 transition-all">
-                          อ่านต่อ →
-                        </span>
-                      </a>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            );
-          })
+                        <span class="mt-2.5 inline-flex items-center gap-1.5 text-xs text-[#4dc4ff] group-hover:gap-2.5 transition-all">อ่านต่อ →</span>
+                      </div>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))
         )}
       </main>
     </div>
