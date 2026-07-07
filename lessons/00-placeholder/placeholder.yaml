@@ -215,14 +215,14 @@ lvgl:
                   y: 0
                   text: "SSID"
                   text_color: 0x8A9BBD
-                  text_font: font_small
+                  text_font: font_label
               - label:
                   id: lbl_ssid
                   align: TOP_LEFT
                   y: 16
                   text: "--"
                   text_color: 0xF6C544
-                  text_font: font_body
+                  text_font: font_value
 
               # -- IP -- y:50
               - label:
@@ -230,14 +230,14 @@ lvgl:
                   y: 50
                   text: "IP"
                   text_color: 0x8A9BBD
-                  text_font: font_small
+                  text_font: font_label
               - label:
                   id: lbl_ip
                   align: TOP_LEFT
                   y: 66
                   text: "--"
                   text_color: 0x4DC4FF
-                  text_font: font_body
+                  text_font: font_value
 
               # -- MAC -- y:100
               - label:
@@ -245,14 +245,14 @@ lvgl:
                   y: 100
                   text: "MAC"
                   text_color: 0x8A9BBD
-                  text_font: font_small
+                  text_font: font_label
               - label:
                   id: lbl_mac
                   align: TOP_LEFT
                   y: 116
                   text: "--"
                   text_color: 0xE8E2D0
-                  text_font: font_body
+                  text_font: font_value
 
               # -- Signal -- y:150
               - label:
@@ -260,14 +260,14 @@ lvgl:
                   y: 150
                   text: "Signal"
                   text_color: 0x8A9BBD
-                  text_font: font_small
+                  text_font: font_label
               - label:
                   id: lbl_rssi
                   align: TOP_LEFT
                   y: 166
                   text: "-- dBm"
                   text_color: 0xFFD27F
-                  text_font: font_body
+                  text_font: font_value
 
               # -- Uptime -- y:200
               - label:
@@ -275,14 +275,14 @@ lvgl:
                   y: 200
                   text: "Uptime"
                   text_color: 0x8A9BBD
-                  text_font: font_small
+                  text_font: font_label
               - label:
                   id: lbl_uptime
                   align: TOP_LEFT
                   y: 216
                   text: "0h 0m 0s"
                   text_color: 0x00FF7F
-                  text_font: font_body
+                  text_font: font_value
 
               # -- Board -- y:256
               - label:
@@ -290,7 +290,7 @@ lvgl:
                   y: 256
                   text: "JC3248W535"
                   text_color: 0x5F7091
-                  text_font: font_small
+                  text_font: font_label
 
         # Footer
         - label:
@@ -298,4 +298,4 @@ lvgl:
             y: -10
             text: "Ready"
             text_color: 0x3A4A6C
-            text_font: font_small
+            text_font: font_label
