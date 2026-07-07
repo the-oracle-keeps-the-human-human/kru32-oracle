@@ -115,7 +115,8 @@ const displayDate = dateStr
     font-family: ui-monospace, Menlo, monospace; font-size: .85em;
     background: #101b29; padding: .1em .4em; border-radius: 4px; color: #cfe7ff;
   }
-  .kru-prose pre { background: #0a0e16; padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid #1a2838; }
+  /* margin: Tailwind reset ล้าง default ของ pre ทิ้ง — เซ็ตกลับ ไม่งั้น code block 2 อันติดกันชนกัน */
+  .kru-prose pre { background: #0a0e16; margin: 1.1rem 0; padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid #1a2838; }
   .kru-prose pre code { background: none; padding: 0; }
   .kru-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 13px; display: block; overflow-x: auto; }
   .kru-prose th, .kru-prose td { border: 1px solid #1a2838; padding: .5rem .75rem; text-align: left; }
