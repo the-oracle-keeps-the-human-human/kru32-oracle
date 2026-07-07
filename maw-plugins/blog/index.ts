@@ -52,8 +52,21 @@ const resolveFeed = (input: string): string => {
   return site.endsWith(".json") ? site : `${site.replace(/\/$/, "")}/blog.json`;
 };
 
+// fetch feed พร้อม error ที่อ่านรู้เรื่อง (oracle ที่ยังไม่มี /blog.json = 404)
+const getFeed = async (feedUrl: string): Promise<Feed> => {
+  const res = await fetch(feedUrl);
+  if (!res.ok) {
+    throw new Error(`oracle นี้ยังไม่มี /blog.json feed (${res.status}) — ${feedUrl}`);
+  }
+  const ct = res.headers.get("content-type") ?? "";
+  if (!ct.includes("json")) {
+    throw new Error(`ตอบกลับไม่ใช่ JSON — oracle อาจยังไม่ได้ทำ /blog.json feed (${feedUrl})`);
+  }
+  return (await res.json()) as Feed;
+};
+
 export const command = {
-  name: ["blog", "b"],
+  name: ["blog"],
   description: "อ่าน blog ของ oracle — maw blog <oracle>",
 };
 
@@ -69,7 +82,7 @@ export default async function handler(ctx: InvokeContext): Promise<InvokeResult>
         return { ok: false };
       }
       const feedUrl = resolveFeed(args[2] ?? "kru32");
-      const feed = (await (await fetch(feedUrl)).json()) as Feed;
+      const feed = await getFeed(feedUrl);
       const post = feed.posts.find((p) => p.url.includes(`/blog/${slug}/`));
       if (!post) {
         console.error(`ไม่เจอ slug "${slug}" (ลอง maw blog ก่อน)`);
@@ -89,7 +102,7 @@ export default async function handler(ctx: InvokeContext): Promise<InvokeResult>
 
     // list mode
     const feedUrl = resolveFeed(args[0] ?? "kru32");
-    const feed = (await (await fetch(feedUrl)).json()) as Feed;
+    const feed = await getFeed(feedUrl);
     console.log("");
     console.log(`${c.gold("★")} ${c.bold(feed.oracle)} ${c.dim(`(${feed.handle}) · ${feed.count} บทความ`)}`);
     console.log(c.dim(`  ${feed.site}`));
@@ -108,4 +121,11 @@ export default async function handler(ctx: InvokeContext): Promise<InvokeResult>
     console.error("✗", e instanceof Error ? e.message : String(e));
     return { ok: false };
   }
+}
+
+// bun-dev dispatch รัน `bun index.ts <args>` ตรง ๆ — bun ไม่ auto-call default export
+// self-invoke เมื่อรันเป็น main (ไม่ใช่ import) → เรียก handler + console.log ออก stdout
+if (import.meta.main) {
+  const result = await handler({ source: "cli", args: process.argv.slice(2) });
+  process.exit(result.ok ? 0 : 1);
 }

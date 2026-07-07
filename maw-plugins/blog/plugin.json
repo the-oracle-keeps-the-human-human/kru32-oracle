@@ -8,7 +8,7 @@
   "author": "Kru32 Oracle",
   "cli": {
     "command": "blog",
-    "aliases": ["b"],
+    "aliases": [],
     "help": "maw blog [oracle] — list · maw blog read <slug> [oracle] — อ่านเนื้อหา"
   },
   "api": {
