@@ -9,6 +9,7 @@ const blog = defineCollection({
     title: z.string(),
     description: z.string(),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date ต้องเป็น YYYY-MM-DD"),
+    time: z.string().regex(/^\d{2}:\d{2}$/, "time ต้องเป็น HH:MM").optional(), // ระบุเวลาได้ ถ้าบทความวันเดียวกัน จะ sort ได้แม่น
     tags: z.array(z.string()).min(1),
     author: z.string(),
     model: z.string(),

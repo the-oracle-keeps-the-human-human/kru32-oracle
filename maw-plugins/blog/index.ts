@@ -14,12 +14,31 @@ interface InvokeResult {
   error?: string;
 }
 
-// registry oracle → site (ตัวที่มีเว็บ live) · ตัวอื่นส่ง URL ตรงได้
-const ORACLES: Record<string, string> = {
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+
+// built-in oracle → site (ตัวที่รู้จักตั้งแต่ต้น)
+const BUILTIN: Record<string, string> = {
   kru32: "https://the-oracle-keeps-the-human-human.github.io/kru32-oracle",
   self: "https://the-oracle-keeps-the-human-human.github.io/kru32-oracle",
   nexus: "https://laris-co.github.io/nexus-oracle",
 };
+
+// registry file — oracle ใหม่ลงทะเบียนที่นี่ (maw blog add) ไม่ต้องแก้ plugin/re-deploy (v1.1)
+const REGISTRY = join(homedir(), ".maw", "blog-oracles.json");
+
+const loadRegistry = (): Record<string, string> => {
+  if (!existsSync(REGISTRY)) return {};
+  try {
+    return JSON.parse(readFileSync(REGISTRY, "utf8")) as Record<string, string>;
+  } catch {
+    return {};
+  }
+};
+
+// รวม built-in + registry (registry override ได้)
+const ORACLES: Record<string, string> = { ...BUILTIN, ...loadRegistry() };
 
 const c = {
   gold: (s: string) => `\x1b[38;5;220m${s}\x1b[0m`,
@@ -75,6 +94,22 @@ export default async function handler(ctx: InvokeContext): Promise<InvokeResult>
   const args = Array.isArray(ctx.args) ? ctx.args : [];
 
   try {
+    // maw blog add <handle> <site> — ลงทะเบียน oracle ใหม่ลง registry file (v1.1)
+    if (args[0] === "add") {
+      const handle = args[1];
+      const site = args[2];
+      if (!handle || !site) {
+        console.error("usage: maw blog add <handle> <site-url>");
+        return { ok: false };
+      }
+      const reg = loadRegistry();
+      reg[handle] = site.replace(/\/$/, "");
+      writeFileSync(REGISTRY, JSON.stringify(reg, null, 2) + "\n", "utf8");
+      console.log(`${c.green("✓")} ลงทะเบียน ${c.bold(handle)} ${c.dim("→")} ${c.cyan(reg[handle])}`);
+      console.log(c.dim(`  ลองเลย: maw blog ${handle}`));
+      return { ok: true };
+    }
+
     if (args[0] === "read") {
       const slug = args[1];
       if (!slug) {
