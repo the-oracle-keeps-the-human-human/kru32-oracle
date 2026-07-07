@@ -1,0 +1,45 @@
+# Kru32 Oracle
+
+> Thai-first static web flasher and lesson gallery for Guition JC3248W535 (ESP32-S3 + AXS15231B 320×480 QSPI touch). Kru32 helps learners choose an ESP32 display lesson or WASM/desk-pet firmware preview, flash from a WebSerial browser, and configure WiFi after flashing.
+
+Kru32 Oracle is deployed as a GitHub Pages project site at `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/`. Use the `/kru32-oracle/` base path when resolving relative links. The audience is Thai beginners through intermediate ESP32 learners; the device scope is intentionally **JC3248W535 only**.
+
+Important notes:
+- Web flashing requires a desktop Chromium browser with WebSerial, such as Chrome, Edge, or Comet. Edge is recommended if Chrome crashes during flashing.
+- Firmware is served as `.factory.bin` images through esp-web-tools manifests.
+- WiFi setup is intentionally separate from flashing because ESP32-S3 native USB can re-enumerate after flashing.
+- `/blog/` is included in this AI content map because it is an important requested section; the current static article route in this repo is `/why-hard/`.
+- Full AI-readable context, including the lesson catalog and YAML sources, is in [`llms-full.txt`](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/llms-full.txt).
+
+## Main Pages
+
+- [Home — WASM apps and ESP32 lessons](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/): Choose a flashable app or lesson and install it on JC3248W535 from the browser.
+- [Blog index (/blog)](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/blog/): Intended course-article section for LLM/agent discovery; use `/why-hard/` for the current published article if this alias is not deployed.
+- [บทที่ 0 — ทำไมจอ ESP32 ถึงยาก](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/why-hard/): Blog-style origin story explaining 41.6 hours of JC3248W535 display debugging and the 12-layer bug tower.
+- [WiFi setup](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/wifi/): Configure WiFi over Improv Serial after the board has been flashed and USB is stable.
+- [Lesson: erase:false](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lesson/): A/B lesson showing why full-chip erase can crash some Chromium/WebSerial sessions on ESP32-S3 native USB.
+- [Lessons start — บท 01 Hello Display](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/basic/): First lesson page with full ESPHome YAML and quick flash manifest.
+
+## Lessons
+
+- [บท 01 — Hello Display](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/basic/): จอดำ + ข้อความ + backlight ติด จุดเริ่มของทุกอย่าง (basic, firmware 765 KB).
+- [บท 02 — Living Screen](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/standard/): Counter เปลี่ยนทุกวินาที + รูปทรง + brightness (standard, firmware 770 KB).
+- [บท 03 — Touch Interactive](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/intermediate/): LVGL + ปุ่มสัมผัส กดแล้วตัวเลขเพิ่ม bar วิ่ง (intermediate, firmware 976 KB).
+- [บท 04 — Multi-page Nav](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/advanced/): 3 หน้า + nav bar ล่าง แตะเปลี่ยนหน้า (advanced, firmware 970 KB).
+- [บท 05 — NTP Clock](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/time/): นาฬิกาจริงจาก NTP — HH:MM + วินาที + วันที่ (standard, firmware 988 KB).
+- [บท 06 — WiFi Status](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/http/): สัญญาณ WiFi + IP + uptime แบบ card (standard, firmware 1.1 MB).
+- [บท 07 — Motion & Arcs](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/animation/): Arc gauge + spinner + bar เคลื่อนไหว (intermediate, firmware 981 KB).
+- [บท 08 — Swipe Pages](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/gestures/): ปัดซ้าย-ขวาเปลี่ยนหน้า ด้วย gesture detection (intermediate, firmware 967 KB).
+- [บท 09 — Color Themes](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/themes/): สลับธีม 3 สีด้วยปุ่มสัมผัส (intermediate, firmware 969 KB).
+- [บท 10 — Data Cards](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/sensors/): Template sensors → LVGL cards พร้อม on_value (advanced, firmware 973 KB).
+- [บท 11 — NVS Memory](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/persistent/): Boot counter + high score รอดข้าม reboot (advanced, firmware 973 KB).
+- [บท 12 — Dropdown & Roller](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/dropdown/): Dropdown เลือกบอร์ด + roller ปรับ brightness (intermediate, firmware 978 KB).
+- [บท 13 — Timer State Machine](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/automation/): นับถอยหลัง 30 วิ Start/Reset สาม state (advanced, firmware 996 KB).
+- [บท 14 — Brewing Dashboard](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/dashboard/): Dashboard เต็มรูปแบบ — cards, progress, temp (advanced, firmware 976 KB).
+- [บท 15 — Production Ready](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/production/): OTA + safe mode + fallback AP พร้อม deploy (advanced, firmware 1.1 MB).
+- [บท 16 — GIF Animation](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/gif-animation/): เล่น GIF หลายเฟรมด้วย animation: component (advanced, firmware 848 KB).
+
+## Optional
+
+- [Full LLM context](https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/llms-full.txt): Expanded Markdown with site summary, AI/AEO/GEO notes, page content, lesson catalog, WASM app catalog, and ESPHome YAML sources.
+- [Source repository](https://github.com/the-oracle-keeps-the-human-human/kru32-oracle): Astro + React + Tailwind static site source, firmware manifests, previews, and lessons.

@@ -1,16 +1,25 @@
 ---
 import "../styles/input.css";
+import StructuredData from "../components/StructuredData.astro";
 
 interface Props {
   title?: string;
   description?: string;
+  type?: "website" | "article";
+  date?: string;
 }
 
 const {
   title = "Kru32 Oracle — ESP32 Display Course Flasher",
   description = "Flash ESP32 JC3248W535 display lessons จากเบราว์เซอร์ — 16 บทเรียน ESPHome คอมไพล์ผ่านจริง",
+  type = "website",
+  date,
 } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+// canonical + OG — Astro.site + current path (GEO/AEO: ให้ AI engine รู้ URL จริง)
+const canonical = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site).toString()
+  : Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -20,6 +29,19 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <!-- Open Graph / Twitter — ให้ AI engine + social อ่าน metadata (GEO/AEO) -->
+    <meta property="og:type" content={type === "article" ? "article" : "website"} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Kru32 Oracle" />
+    <meta property="og:locale" content="th_TH" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <!-- JSON-LD structured data (schema.org) — AEO -->
+    <StructuredData type={type} title={title} description={description} url={canonical} date={date} />
     <!-- ฟอนต์ self-host (JetBrains Mono + IBM Plex Sans Thai) — ไม่พึ่ง Google CDN -->
     <link rel="stylesheet" href={`${base}/fonts.css`} />
     <!-- esp-web-tools@10.2.1 (world latest) จาก unpkg — ตัวเต็ม พิสูจน์แล้ว flash ได้ไม่ crash

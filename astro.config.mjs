@@ -1,5 +1,6 @@
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
+import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { execSync } from "child_process";
 
@@ -11,7 +12,7 @@ const ts = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 16).replac
 export default defineConfig({
   site: "https://the-oracle-keeps-the-human-human.github.io",
   base: "/kru32-oracle",
-  integrations: [react()],
+  integrations: [react(), sitemap()],
   vite: {
     plugins: [tailwindcss()],
     define: {

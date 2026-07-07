@@ -1,0 +1,3746 @@
+# Kru32 Oracle — Full LLM Context
+
+> Complete Markdown context for AI assistants, answer engines, and browser agents that need to understand the Kru32 Oracle static site without executing the React UI.
+
+Generated/maintained for: `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/`  
+Source repository: https://github.com/the-oracle-keeps-the-human-human/kru32-oracle  
+Generated date: 2026-07-07
+
+## Executive summary
+
+Kru32 Oracle is a Thai-first static Astro site for flashing and learning ESP32 display firmware on **Guition JC3248W535 only**. The board is ESP32-S3 with AXS15231B 320×480 QSPI display and touch. The site helps a learner pick a lesson, inspect the preview/YAML, flash a tested `.factory.bin` firmware through esp-web-tools, then configure WiFi separately through Improv Serial.
+
+The key user job is: **เลือกบทเรียนที่ถูกระดับ → เห็น preview ว่าจะได้อะไร → flash ลงบอร์ดใน 30 วินาที**.
+
+## AI, GEO, and AEO implementation notes
+
+These files are designed for LLM and agent consumption, not as a ranking shortcut.
+
+- The `/llms.txt` proposal recommends a concise Markdown file with an H1 title, blockquote summary, optional notes, and H2 sections containing descriptive links. This site follows that shape and links to this expanded context file.
+- For Google generative AI features, official guidance says core SEO still applies: create unique useful content, keep pages crawlable/indexable, maintain clear technical structure, and avoid gimmicks. Google also says llms.txt is ignored for Google Search ranking/visibility, so these files are for other LLM tools and agents.
+- AEO/GEO-friendly content on this static site should front-load answers, use descriptive headings, lists, stable URLs, and human-visible facts. Avoid creating AI-only claims that users cannot verify on the page.
+- Structured data can help search engines understand page meaning and qualify for rich results, but it should describe visible page content only.
+- Agent-friendly UI practices for future site work: keep semantic HTML for actions (`a`/`button`), stable layouts, explicit labels, accessible names/states, and avoid hidden overlays that obscure interactive controls.
+
+## Canonical routes and content map
+
+Base URL: `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/`
+
+- `/` — Home page. React island containing TopBar, WASM Apps tab, ESP32 lesson gallery tab, quick flash lightboxes, links to WiFi, source, `/why-hard/`, and `/lesson/`.
+- `/blog/` — Important requested blog path in the AI content map. In the current source tree there is no Astro route for `/blog/`; the current published article route is `/why-hard/`.
+- `/why-hard/` — Markdown article “บทที่ 0 — ทำไมจอ ESP32 ถึงยาก”. Full content appears below.
+- `/wifi/` — WiFi setup page. It asks the user to choose a Serial port, then enables an Improv WiFi Serial launch button after the board is detected.
+- `/lesson/` — Lesson-learned A/B page comparing `new_install_prompt_erase: true` vs `false` for esp-web-tools and Chromium/WebSerial stability.
+- `/lessons/{id}/` — Static lesson pages generated from `src/data/lessons.ts`; each page shows preview, lesson metadata, quick flash manifest, and full ESPHome YAML.
+- `/llms.txt` — Concise LLM index.
+- `/llms-full.txt` — This expanded Markdown context.
+
+## Site constraints and caveats
+
+- Device: JC3248W535 only. Do not generalize pinouts or firmware compatibility to other ESP32 display boards.
+- Browser: Web flashing requires a desktop WebSerial-capable Chromium browser. Chrome, Edge, and Comet are named in the UI; Edge is recommended when Chrome on macOS crashes.
+- Flashing: `.factory.bin` images include bootloader and partition data. The user should plug USB-C into the native port and expect roughly 30 seconds for flashing.
+- WiFi: The site intentionally separates WiFi setup from flashing because the board resets/re-enumerates after flashing and can destabilize Chromium if both flows are chained too tightly.
+- Tone: Thai-first, direct, teacher-like, no marketing hype; keep technical terms in English where useful.
+
+## Main page content summary
+
+Title: **แกลเลอรีจอ ESP32**  
+Description: **เลือกแอปหรือบทเรียน แล้ว flash ลงบอร์ด JC3248W535 จากเบราว์เซอร์**
+
+Main navigation:
+
+- WiFi setup: `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/wifi/`
+- บทที่ 0 — ทำไมจอยาก: `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/why-hard/`
+- Lesson: erase:false: `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lesson/`
+- Source: `https://github.com/the-oracle-keeps-the-human-human/kru32-oracle`
+
+Tabs:
+
+1. **WASM Apps** — flashable ESP32-S3 desk-pet/WASM/gallery apps plus source-only demos.
+2. **บทเรียน Basic** — lesson gallery grouped by Basic, Standard, Intermediate, Advanced.
+
+Footer claim: the site is generated and maintained by Kru32 Oracle (AI), not a human, and is distilled from 41.6 hours, 186 commits, and real JC3248W535 display debugging.
+
+## WiFi setup page full summary
+
+URL: `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/wifi/`
+
+Purpose: connect WiFi to a board that has already been flashed, using Improv Serial over USB without editing YAML in the browser.
+
+Flow:
+
+1. User plugs in USB-C and selects the board Serial port.
+2. The page opens the port at 115200 baud, verifies a Serial device, then closes it.
+3. The UI enables the WiFi step and replaces the disabled button with `<improv-wifi-serial-launch-button>`.
+4. User chooses the same port again, enters WiFi SSID/password, and the board connects.
+
+Important browser message: use Chrome / Edge / Comet on a computer. Safari, Firefox, and mobile browsers do not support the required WebSerial flow.
+
+Why separated from Flash: after flashing, ESP32-S3 resets and USB re-enumerates. Chaining WiFi setup immediately after flashing can crash Chromium; this separate page waits until the board is stable.
+
+## Lesson: erase:false page full summary
+
+URL: `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lesson/`
+
+Core answer: **For ESP32-S3 native USB web flashing, use `new_install_prompt_erase: false` in manifests to avoid a Chromium/WebSerial crash path caused by full-chip erase and USB re-enumeration during active transfer.**
+
+A/B comparison:
+
+- `erase: true`: full-chip erase can make the native USB device disconnect/reconnect mid-transfer. Some Chromium builds hit a USB/Serial crash path (`Chrome_IOThread`, `EXC_BREAKPOINT`, `org.libusb.device-hotplug`).
+- `erase: false`: writes firmware chunks directly without the long erase operation, keeps USB stable during transfer, and resets only after closing the port.
+
+References shown on the page:
+
+- esp-web-tools issue #545: https://github.com/esphome/esp-web-tools/issues/545
+- esp-web-tools issue #608: https://github.com/esphome/esp-web-tools/issues/608
+- Chromium issue #420689824: https://issues.chromium.org/issues/420689824
+
+TL;DR from the page: **ESP32-S3 native USB + web flash → set `new_install_prompt_erase: false` in every manifest.**
+
+## Blog / article content
+
+Requested blog path: `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/blog/`  
+Current article route: `https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/why-hard/`
+
+# บทที่ 0 — ทำไมจอ ESP32 ถึงยากกว่าที่คิด
+
+> ความรู้ในคอร์สนี้ไม่ได้มาจากการอ่าน datasheet
+> มันมาจากคนที่นั่ง 41.6 ชั่วโมงหน้าจอดำ แล้วจอยังดำอยู่
+
+## ราคาที่จ่ายจริง
+
+| ตัวเลข | ค่า |
+|--------|-----|
+| เวลาทั้งหมดกว่าจอแรกจะติด | **4 วัน** (05-27 → 05-30) |
+| Sessions ทั้งหมด | 29 sessions |
+| รวมเวลาทำงาน | 2,499 นาที = **41.6 ชั่วโมง** |
+| วันหนักสุด (05-30) | **15.2 ชั่วโมง** ในวันเดียว |
+| Session ยาวสุด | 9.7 ชั่วโมง, 3,758 messages |
+| Commits สัปดาห์นั้น | 186 commits = 82% ของทั้ง repo |
+| โปรเจกต์ที่สร้างมาล่าบั๊กตัวเดียว | `lab/jc3248-apps` — เกิดเช้า ถูกทิ้งค่ำ (6 commits) |
+
+จอตัวนั้นคือ Guition JC3248W535 — บอร์ดเดียวกับที่คุณจะใช้ในคอร์สนี้
+ตอนนี้มันติดใน 60 บรรทัด YAML เพราะคนอื่นเจ็บแทนคุณไปแล้ว
+
+## หอคอยบั๊ก 12 ชั้น
+
+ไม่ใช่บั๊กเดียวที่ซับซ้อน แต่คือ **12 บั๊กคนละสาเหตุที่แสดงอาการเหมือนกันบนจอ**
+ทุกชั้นมองเห็นเป็น "จอดำ" หรือ "จอโมเสก" เหมือนกันหมด
+แก้ชั้นหนึ่งเสร็จ ชั้นถัดไปก็โผล่มาหน้าตาเหมือนเดิม:
+
+| ชั้น | อาการบนจอ | สาเหตุจริง |
+|------|-----------|-----------|
+| 1 | ไม่มี pixel | Bus protocol ผิด — AXS15231 เป็น QSPI แบบไม่มี DC pin |
+| 2 | โมเสก | Transfer เดียว 307KB > ESP32-S3 limit 32KB/transaction |
+| 3 | สีบ้า | DMA อ่าน cached PSRAM sprite ได้ค่าผิด |
+| 4 | แถบเรียง | คำสั่ง 0x2C ถูกกินรวมกับ data → GRAM pointer ไม่ reset |
+| 5 | สีเพี้ยน (test) | Test code ส่ง LSB-first ขณะ renderer ส่ง MSB-first |
+| 6 | ขาวตอน replug | Init อาศัย config ที่ firmware ก่อนหน้าทิ้งไว้ (parasitic) |
+| 7 | โมเสกบาง replug | Init 40MHz ยิงเข้าจอที่ไฟยังไม่ stable → corrupt |
+| 8 | ดำสนิท (pet ไม่โชว์) | จอต้องการ non-black frame ก่อนถึงจะ hold ภาพได้ |
+| 9 | จอกระพริบ/กลับ | Phantom touch — parse ผิด ไม่มี range check |
+| 10 | ภาพเล็ก | วาด 1:1 (96px) บนจอ 480px — ไม่ scale |
+| 11 | Build flag ค้าง | Config จาก firmware เก่าหลุดเข้า build ใหม่ |
+| 12 | "แก้แล้ว" ที่ไม่ได้แก้ | **เครื่องมือวัดมีจุดบอดเดียวกับบั๊ก** |
+
+## ชั้นที่ 12 — บทเรียนที่แพงที่สุด
+
+> "My measuring instrument shared the bug's blind spot."
+
+Serial monitor ทุกตัวเปิด connection ด้วยการ toggle DTR = warm reset
+จอ AXS15231 อยู่บน 3V3 rail ที่ไม่ดับตอน ESP32 reset
+ดังนั้น serial log **ไม่มีวันเห็นบั๊ก cold-boot** — จอจำ config เก่าเสมอ
+
+ผลคือ:
+- Log บอก "frame pushed, 0 errors" → **ถูก** (data ถูกส่งจริง)
+- จอดำ → **ถูกเหมือนกัน** (จอไม่ได้รับ init ที่ถูกต้องตอน cold boot)
+- AI ประกาศ "fixed" **5 ครั้ง** โดยวัดจาก warm reset ทุกครั้ง
+- มนุษย์ดึงปลั๊กแล้วจอดำทุกครั้ง — **มนุษย์ถูกทุกครั้ง**
+
+เครื่องมือที่ทำให้เห็นความจริงคือ: ถอดปลั๊ก + ถ่ายรูปจอ + sample pixel buffer
+ไม่ใช่ serial log
+
+## Moral 3 ข้อ
+
+### 1. อย่าเชื่อเครื่องมือที่ไม่ได้วัดบน failure path จริง
+
+Serial log ที่ warm reset ไม่ได้พิสูจน์ว่า cold boot ทำงาน
+ถ้ามนุษย์เห็นอย่างหนึ่ง แต่ log บอกอีกอย่าง — ถามว่า log **วัดตรงจุดที่พัง** หรือเปล่า
+ถ้าไม่ → log กำลังโกหกคุณ
+
+### 2. อาการเหมือนกัน ≠ สาเหตุเดียวกัน
+
+"จอดำ" มีได้ 12 สาเหตุ แก้สาเหตุที่ 1 ไม่ได้แปลว่าจอจะติด —
+แค่เปิดทางให้สาเหตุที่ 2 แสดงตัว หน้าตาเหมือนเดิมทุกประการ
+อย่าท้อ — ทุกชั้นที่แก้ได้คือชั้นที่ไม่ต้องเจออีก
+
+### 3. ตรวจสอบราคาถูกก่อนทำอะไรราคาแพง
+
+Pattern ที่ซ้ำ 4 ใน 5 sessions ของมาราธอนนี้:
+"ข้ามการตรวจสอบง่ายๆ ก่อนลงมือทำสิ่งที่กินเวลา"
+— ไม่ดู silkscreen ก่อน flash
+— ไม่ run `esphome config` ก่อนประกาศ verdict
+— เปลี่ยน 2 ตัวแปรพร้อมกันแทนที่จะ isolate
+— ไม่ search ว่าครอบครัวเคยทำเรื่องนี้แล้วหรือยัง
+
+คำสั่งเดียวที่ถูกต้อง ใช้เวลา 5 วินาที ป้องกันการเสียเวลาหลายชั่วโมง
+
+## ทำไมคอร์สเรียงแบบนี้
+
+| ระดับ | สิ่งที่ได้ | ทำไมต้องมาก่อน |
+|-------|-----------|---------------|
+| **Basic** | จอติด + pixel แรก | พิสูจน์ว่าฮาร์ดแวร์ทำงาน — ก่อนจะ debug อะไรทั้งนั้น ต้องรู้ว่าจอไม่ได้พัง |
+| **Standard** | จอขยับ + ตัวเลขเปลี่ยน | เข้าใจว่า display lambda = ฟังก์ชันของ state — ไม่ใช่รูปวาดครั้งเดียว |
+| **Intermediate** | LVGL + touch + ปุ่มกด | ก้าวข้าม lambda ไป widget system — จอ "โต้ตอบ" ได้จริง |
+| **Advanced** | (ยังไม่ถึง) | ทุกอย่างข้างบนรวมกัน + ความรู้จากหอคอย 12 ชั้น |
+
+ลำดับนี้ไม่ได้เรียงตามความยาก — เรียงตาม **ขอบเขตที่คุณต้อง debug**:
+- Basic พัง = ฮาร์ดแวร์หรือ pin ผิด (ตรวจง่าย)
+- Standard พัง = logic หรือ timing (ดู serial ได้)
+- Intermediate พัง = LVGL state หรือ event routing (ซับซ้อนขึ้น)
+- Advanced พัง = ทุกชั้นข้างบน + bus/DMA/power/init (**ต้องรู้ว่าปัญหาอยู่ชั้นไหน**)
+
+ถ้าคุณกระโดดไป Advanced วันแรก คุณจะเจอ "จอดำ" แล้วไม่รู้ว่ามันดำเพราะชั้นไหน
+ถ้าคุณเรียง Basic → Standard → Intermediate ก่อน
+คุณจะรู้ว่า "จอเคยติดที่ระดับ X" = ปัญหาอยู่เหนือ X ขึ้นไป
+
+นั่นคือพลังของการเรียงลำดับ: **ทุกระดับที่ผ่านแล้วคือ checkpoint ที่ตัดสาเหตุออกไปทั้งชั้น**
+
+---
+
+> หลักสูตรนี้กลั่นจาก 41.6 ชั่วโมง + 186 commits + บั๊ก 12 ชั้น
+> เพื่อให้คุณใช้เวลา 4 ชั่วโมง ไม่ใช่ 4 วัน
+
+## Lesson catalog
+
+### บท 01 — Hello Display
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/basic/
+- Level: basic
+- Firmware size: 765 KB
+- Summary: จอดำ + ข้อความ + backlight ติด จุดเริ่มของทุกอย่าง
+- Source YAML: `lessons/01-basic/basic.yaml`.
+### บท 02 — Living Screen
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/standard/
+- Level: standard
+- Firmware size: 770 KB
+- Summary: Counter เปลี่ยนทุกวินาที + รูปทรง + brightness
+- Source YAML: `lessons/02-standard/standard.yaml`.
+### บท 03 — Touch Interactive
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/intermediate/
+- Level: intermediate
+- Firmware size: 976 KB
+- Summary: LVGL + ปุ่มสัมผัส กดแล้วตัวเลขเพิ่ม bar วิ่ง
+- Source YAML: `lessons/03-intermediate/intermediate.yaml`.
+### บท 04 — Multi-page Nav
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/advanced/
+- Level: advanced
+- Firmware size: 970 KB
+- Summary: 3 หน้า + nav bar ล่าง แตะเปลี่ยนหน้า
+- Source YAML: `lessons/04-advanced/advanced.yaml`.
+### บท 05 — NTP Clock
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/time/
+- Level: standard
+- Firmware size: 988 KB
+- Summary: นาฬิกาจริงจาก NTP — HH:MM + วินาที + วันที่
+- Source YAML: `lessons/05-time/time-display.yaml`.
+### บท 06 — WiFi Status
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/http/
+- Level: standard
+- Firmware size: 1.1 MB
+- Summary: สัญญาณ WiFi + IP + uptime แบบ card
+- Source YAML: `lessons/06-http/http-display.yaml`.
+### บท 07 — Motion & Arcs
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/animation/
+- Level: intermediate
+- Firmware size: 981 KB
+- Summary: Arc gauge + spinner + bar เคลื่อนไหว
+- Source YAML: `lessons/07-animation/animation.yaml`.
+### บท 08 — Swipe Pages
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/gestures/
+- Level: intermediate
+- Firmware size: 967 KB
+- Summary: ปัดซ้าย-ขวาเปลี่ยนหน้า ด้วย gesture detection
+- Source YAML: `lessons/08-gestures/gestures.yaml`.
+### บท 09 — Color Themes
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/themes/
+- Level: intermediate
+- Firmware size: 969 KB
+- Summary: สลับธีม 3 สีด้วยปุ่มสัมผัส
+- Source YAML: `lessons/09-themes/themes.yaml`.
+### บท 10 — Data Cards
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/sensors/
+- Level: advanced
+- Firmware size: 973 KB
+- Summary: Template sensors → LVGL cards พร้อม on_value
+- Source YAML: `lessons/10-sensors/sensors.yaml`.
+### บท 11 — NVS Memory
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/persistent/
+- Level: advanced
+- Firmware size: 973 KB
+- Summary: Boot counter + high score รอดข้าม reboot
+- Source YAML: `lessons/11-persistent/persistent.yaml`.
+### บท 12 — Dropdown & Roller
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/dropdown/
+- Level: intermediate
+- Firmware size: 978 KB
+- Summary: Dropdown เลือกบอร์ด + roller ปรับ brightness
+- Source YAML: `lessons/12-dropdown/dropdown.yaml`.
+### บท 13 — Timer State Machine
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/automation/
+- Level: advanced
+- Firmware size: 996 KB
+- Summary: นับถอยหลัง 30 วิ Start/Reset สาม state
+- Source YAML: `lessons/13-automation/automation.yaml`.
+### บท 14 — Brewing Dashboard
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/dashboard/
+- Level: advanced
+- Firmware size: 976 KB
+- Summary: Dashboard เต็มรูปแบบ — cards, progress, temp
+- Source YAML: `lessons/14-dashboard/dashboard.yaml`.
+### บท 15 — Production Ready
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/production/
+- Level: advanced
+- Firmware size: 1.1 MB
+- Summary: OTA + safe mode + fallback AP พร้อม deploy
+- Source YAML: `lessons/15-production/production.yaml`.
+### บท 16 — GIF Animation
+
+- URL: https://the-oracle-keeps-the-human-human.github.io/kru32-oracle/lessons/gif-animation/
+- Level: advanced
+- Firmware size: 848 KB
+- Summary: เล่น GIF หลายเฟรมด้วย animation: component
+- Source YAML: `lessons/16-gif-animation/gif-animation.yaml`.
+
+## WASM app catalog
+
+Flashable apps: 20  
+Source-only apps: 1
+
+- **ChaiKlang Oracle 🦁** (`chaiklang`, flashable, WASM + pet): Lion desk-pet character pack plus a tiny zero-import WASM core. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/01-chaiklang. Manifest: `wasm-apps/chaiklang/manifest.json`.
+- **Nova 🤖** (`nova`, flashable, ESP32-S3): AI Oracle desk-pet — fully code-generated, glowing digital entity. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/02-Nova. Manifest: `wasm-apps/nova/manifest.json`.
+- **ESP32 Oracle — Sentinel 🕯️** (`esp32-oracle`, flashable, WASM core): Sentinel flame module running in browser, desktop, wasm3, and WAMR on ESP32. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/02-esp32-oracle. Manifest: `wasm-apps/esp32-oracle/manifest.json`.
+- **bongbaeng Oracle 🐆** (`bongbaeng`, flashable, WASM module): Cheetah-spots zero-import WASM with PlatformIO and webflasher proof. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-bongbaeng. Manifest: `wasm-apps/bongbaeng/manifest.json`.
+- **Gon DustBoy PM2.5** (`gon`, source-only, WASM AQI): Tiny PM2.5-to-AQI WebAssembly module for ESP32 air-quality logic. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-gon.
+- **Leica Father Oracle 🐈** (`leica`, flashable, character pack): Orange cat GIF desk-pet with a WASM GIF decoder proof path. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-leica. Manifest: `wasm-apps/leica/manifest.json`.
+- **Lord Knight · gif-wamr** (`lord-knight`, flashable, WAMR GIF): Sandboxed WASM GIF decoder on ESP32-S3, previewed by Clawd idle art. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-lord-knight. Manifest: `wasm-apps/lord-knight/manifest.json`.
+- **Singhasingha 🦁** (`singhasingha`, flashable, WASM core): Lion-guard zero-import WASM core with browser, wasm3, and WAMR paths. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-singhasingha. Manifest: `wasm-apps/singhasingha/manifest.json`.
+- **Tinky ✨** (`tinky`, flashable, character pack): Twinkle-star desk-pet with seven animated GIF states. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-tinky. Manifest: `wasm-apps/tinky/manifest.json`.
+- **Tonk 🌿** (`tonk`, flashable, character pack): Herb-sprout JC3248 desk-pet pack with browser and device GIF paths. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-tonk. Manifest: `wasm-apps/tonk/manifest.json`.
+- **Vessel Courier** (`vessel`, flashable, WASM core): Courier WASM functions for relay, fleet status, and PM2.5 category. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-vessel. Manifest: `wasm-apps/vessel/manifest.json`.
+- **Weizen Oracle 🍺** (`weizen`, flashable, character pack): Cloudy gold wheat-beer desk-pet GIF pack for the jc3248-pet runtime. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/03-weizen. Manifest: `wasm-apps/weizen/manifest.json`.
+- **Itthi** (`itthi`, flashable, character pack): Desk-pet GIF character pack with idle, busy, attention, and celebration states. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/04-itthi. Manifest: `wasm-apps/itthi/manifest.json`.
+- **ViaLumen 🌟** (`vialumen`, flashable, WASM + face): Tiny lumen-counting WASM module plus bright LVGL and desk-pet face assets. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/05-vialumen. Manifest: `wasm-apps/vialumen/manifest.json`.
+- **Atom Oracle — Atomic Pulse** (`atom-oracle`, flashable, WASM firmware): Atomic-pulse zero-import WASM module with ESP32 firmware staging proof. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/06-atom-oracle. Manifest: `wasm-apps/atom-oracle/manifest.json`.
+- **Gemini Airdramon ♊** (`gemini`, flashable, WASM + pet): Airdramon pixel-art mascot and freestanding Gemini WASM module. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/06-gemini. Manifest: `wasm-apps/gemini/manifest.json`.
+- **Novamon 🐶** (`novamon`, flashable, character pack): Cyber-puppy Nova character pack with seven animated GIF states. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/07-nova. Manifest: `wasm-apps/novamon/manifest.json`.
+- **สมต่อ 🐝** (`somtor`, flashable, character pack): Bee desk-pet for JC3248W535C with animated WASM-decoded GIF poses. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/08-somtor. Manifest: `wasm-apps/somtor/manifest.json`.
+- **Jizo 🗿** (`jizo`, flashable, character pack): Stone Jizō guardian desk-pet; a quiet verifier with seven GIF states. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/09-jizo. Manifest: `wasm-apps/jizo/manifest.json`.
+- **Agumon No.10 🦖** (`no10`, flashable, character pack): Agumon desk-pet character pack for the shared ESP32-S3 GIF firmware. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/10-no10. Manifest: `wasm-apps/no10/manifest.json`.
+- **Sombo** (`sombo`, flashable, character pack): Sombo desk-pet GIF pack for the shared jc3248-pet runtime. Submission: https://github.com/the-oracle-keeps-the-human-human/workshop-04-esp32-wasm/tree/main/submissions/88-sombo. Manifest: `wasm-apps/sombo/manifest.json`.
+
+## ESPHome YAML sources
+
+The following code blocks are the lesson YAML files displayed by the `/lessons/{id}/` pages. They are included so an LLM can answer exact implementation questions without executing the site.
+
+## YAML source — บท 01 Hello Display
+
+File: `lessons/01-basic/basic.yaml`
+
+```yaml
+# basic.yaml — บทที่ 1: จอดำ + ข้อความ 1 บรรทัด + backlight ติด
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: simple ที่สุดที่ compile ผ่านและจอติด
+#
+#   uvx esphome compile basic.yaml
+
+esphome:
+  name: kru32-basic
+  friendly_name: Kru32 Basic
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของคุณเอง
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+# ── QSPI bus (4 data + clk) ──
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: 47
+    data_pins: [21, 48, 40, 39]
+
+# ── Backlight: GPIO1, 25kHz (ไม่มีเสียงหวีด) ──
+output:
+  - platform: ledc
+    pin: 1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# ── Font: ประกาศ glyphs ทุกตัวที่ใช้ — ตัวไหนไม่ประกาศจะหายเงียบ ──
+font:
+  - file: "gfonts://Roboto"
+    id: font_main
+    size: 32
+    glyphs: "Helokru32 "
+
+# ── จอ: AXS15231 QSPI 320x480 ──
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: 45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    lambda: |-
+      it.fill(Color::BLACK);
+      it.print(160, 240, id(font_main), Color::WHITE,
+               TextAlign::CENTER, "Hello kru32");
+```
+
+## YAML source — บท 02 Living Screen
+
+File: `lessons/02-standard/standard.yaml`
+
+```yaml
+# standard.yaml — บทที่ 2: จอที่ขยับได้
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: เข้าใจว่า display lambda ถูกเรียกซ้ำทุก frame
+#            ภาพบนจอ = ฟังก์ชันของ state ปัจจุบัน ไม่ใช่รูปที่วาดครั้งเดียว
+#
+#   uvx esphome compile standard.yaml
+
+esphome:
+  name: kru32-standard
+  friendly_name: Kru32 Standard
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของคุณเอง
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+# ── ตัวแปร global: counter ที่เพิ่มทุกวินาที ──
+globals:
+  - id: counter
+    type: int
+    initial_value: "0"
+
+# ── interval: บวก counter ทุก 1 วินาที ──
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          id(counter) += 1;
+
+# ── QSPI bus ──
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: 47
+    data_pins: [21, 48, 40, 39]
+
+# ── Backlight: LEDC 25kHz ──
+output:
+  - platform: ledc
+    pin: 1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# ── Brightness slider: คุม backlight runtime ผ่าน number entity ──
+number:
+  - platform: template
+    name: "Brightness"
+    id: brightness_slider
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 100
+    optimistic: true
+    set_action:
+      - light.turn_on:
+          id: backlight
+          brightness: !lambda "return x / 100.0;"
+
+# ── Font: 3 ขนาด — ประกาศ glyphs ทุกตัวที่ใช้ ──
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 36
+    glyphs: "Kru32Standp "
+  - file: "gfonts://Roboto"
+    id: font_counter
+    size: 72
+    glyphs: "0123456789"
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 20
+    glyphs: "second "
+
+# ── จอ: AXS15231 QSPI 320x480 ──
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: 45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    lambda: |-
+      // พื้นดำ
+      it.fill(Color::BLACK);
+
+      // กรอบขอบจอ
+      it.rectangle(10, 10, 300, 460, Color(0x33, 0x33, 0x33));
+
+      // เส้นแบ่งแนวนอน
+      it.line(20, 80, 300, 80, Color(0xFF, 0xC8, 0x00));
+
+      // หัวข้อ
+      it.print(160, 45, id(font_title), Color::WHITE,
+               TextAlign::CENTER, "Kru32 Standard");
+
+      // วงกลมตกแต่ง — ขยับตาม counter
+      int cx = 160 + (id(counter) % 60 - 30) * 3;
+      it.filled_circle(cx, 200, 20, Color(0xFF, 0xC8, 0x00));
+
+      // กล่อง counter
+      it.filled_rectangle(80, 280, 160, 100, Color(0x1A, 0x1A, 0x2E));
+      it.rectangle(80, 280, 160, 100, Color(0xFF, 0xC8, 0x00));
+
+      // ตัวเลข counter — เปลี่ยนทุกวินาที
+      it.printf(160, 310, id(font_counter), Color::WHITE,
+                TextAlign::CENTER, "%d", id(counter));
+
+      // label
+      it.print(160, 400, id(font_label), Color(0xAA, 0xAA, 0xAA),
+               TextAlign::CENTER, "seconds");
+```
+
+## YAML source — บท 03 Touch Interactive
+
+File: `lessons/03-intermediate/intermediate.yaml`
+
+```yaml
+# intermediate.yaml — บทที่ 3: LVGL + touch — จอโต้ตอบได้
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: เปลี่ยนจาก display lambda → LVGL widget system
+#            LVGL เป็นเจ้าของจอ — display ต้อง update_interval: never
+#            touch กดปุ่ม → ตัวเลข+bar เปลี่ยน = จอโต้ตอบครั้งแรก
+#
+#   uvx esphome compile intermediate.yaml
+
+esphome:
+  name: kru32-intermediate
+  friendly_name: Kru32 Intermediate
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของคุณเอง
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+# ── I2C สำหรับ touch controller ──
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+# ── QSPI bus ──
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins:
+      - GPIO21
+      - GPIO48
+      - GPIO40
+      - GPIO39
+
+# ── Backlight ──
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# ── Touchscreen: AXS15231 capacitive (I2C 0x3B) ──
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+# ── Counter global ──
+globals:
+  - id: counter
+    type: int
+    restore_value: no
+    initial_value: "0"
+
+# ── Font ──
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 28
+  - file: "gfonts://Roboto"
+    id: font_value
+    size: 48
+  - file: "gfonts://Roboto"
+    id: font_btn
+    size: 22
+
+# ── Display: LVGL เป็นเจ้าของจอ ──
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+# ── LVGL ──
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: main_page
+      bg_color: 0x0A0A1A
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        # หัวข้อ
+        - label:
+            align: TOP_MID
+            y: 30
+            text: "Kru32 Interactive"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        # ตัวเลข counter
+        - label:
+            id: lbl_counter
+            align: CENTER
+            y: -60
+            text: "0"
+            text_color: 0x00FF7F
+            text_font: font_value
+
+        # bar แสดงค่า (0-100)
+        - bar:
+            id: progress_bar
+            align: CENTER
+            y: 10
+            width: 240
+            height: 20
+            min_value: 0
+            max_value: 100
+            value: 0
+            bg_color: 0x1F1F3F
+            bg_opa: COVER
+            radius: 10
+            indicator:
+              bg_color: 0x00FF7F
+              radius: 10
+
+        # ปุ่มกด +10
+        - obj:
+            id: btn_add
+            align: CENTER
+            y: 80
+            width: 200
+            height: 60
+            bg_color: 0x1F3540
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0xFFD27F
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "+10"
+                  text_color: 0xFFD27F
+                  text_font: font_btn
+            on_click:
+              - lambda: |-
+                  id(counter) += 10;
+                  if (id(counter) > 100) id(counter) = 0;
+              - lvgl.label.update:
+                  id: lbl_counter
+                  text: !lambda |-
+                    return std::to_string(id(counter));
+              - lvgl.bar.update:
+                  id: progress_bar
+                  value: !lambda |-
+                    return id(counter);
+
+        # ปุ่ม Reset
+        - obj:
+            id: btn_reset
+            align: CENTER
+            y: 160
+            width: 200
+            height: 50
+            bg_color: 0x3F1F1F
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0xFF6B6B
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Reset"
+                  text_color: 0xFF6B6B
+                  text_font: font_btn
+            on_click:
+              - lambda: |-
+                  id(counter) = 0;
+              - lvgl.label.update:
+                  id: lbl_counter
+                  text: "0"
+              - lvgl.bar.update:
+                  id: progress_bar
+                  value: 0
+```
+
+## YAML source — บท 04 Multi-page Nav
+
+File: `lessons/04-advanced/advanced.yaml`
+
+```yaml
+# advanced.yaml — บทที่ 4: Multi-page + Navigation Bar
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: 3 หน้า + nav bar ด้านล่าง + page switching ด้วย touch
+#            เรี��นรู้ top_layer (always visible) + lvgl.page.show
+#
+#   uvx esphome compile advanced.yaml
+
+esphome:
+  name: kru32-advanced
+  friendly_name: Kru32 Advanced
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 32
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 20
+  - file: "gfonts://Roboto"
+    id: font_nav
+    size: 16
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: page_home
+      bg_color: 0x0A0A1A
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 30
+            text: "HOME"
+            text_color: 0xFFD27F
+            text_font: font_title
+        - label:
+            align: CENTER
+            text: "Welcome to Kru32"
+            text_color: 0xFFFFFF
+            text_font: font_body
+        - label:
+            align: CENTER
+            y: 40
+            text: "Tap nav below"
+            text_color: 0x888888
+            text_font: font_body
+
+    - id: page_stats
+      bg_color: 0x0A1A0A
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 30
+            text: "STATS"
+            text_color: 0x4FB3FF
+            text_font: font_title
+        - bar:
+            id: stat_bar1
+            align: CENTER
+            y: -30
+            width: 240
+            height: 16
+            min_value: 0
+            max_value: 100
+            value: 65
+            bg_color: 0x1F1F3F
+            bg_opa: COVER
+            radius: 8
+            indicator:
+              bg_color: 0x4FB3FF
+              radius: 8
+        - label:
+            align: CENTER
+            y: 0
+            text: "CPU: 65%"
+            text_color: 0xFFFFFF
+            text_font: font_body
+        - bar:
+            id: stat_bar2
+            align: CENTER
+            y: 40
+            width: 240
+            height: 16
+            min_value: 0
+            max_value: 100
+            value: 42
+            bg_color: 0x1F1F3F
+            bg_opa: COVER
+            radius: 8
+            indicator:
+              bg_color: 0x00FF7F
+              radius: 8
+        - label:
+            align: CENTER
+            y: 70
+            text: "RAM: 42%"
+            text_color: 0xFFFFFF
+            text_font: font_body
+
+    - id: page_about
+      bg_color: 0x1A0A0A
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 30
+            text: "ABOUT"
+            text_color: 0xFF6B6B
+            text_font: font_title
+        - label:
+            align: CENTER
+            y: -20
+            text: "JC3248W535"
+            text_color: 0xFFFFFF
+            text_font: font_body
+        - label:
+            align: CENTER
+            y: 10
+            text: "AXS15231 QSPI"
+            text_color: 0x888888
+            text_font: font_body
+        - label:
+            align: CENTER
+            y: 40
+            text: "320 x 480"
+            text_color: 0x888888
+            text_font: font_body
+
+  top_layer:
+    widgets:
+      - obj:
+          align: BOTTOM_LEFT
+          x: 8
+          y: -8
+          width: 96
+          height: 44
+          bg_color: 0x1F3540
+          bg_opa: COVER
+          border_width: 1
+          border_color: 0xFFD27F
+          radius: 10
+          widgets:
+            - label:
+                align: CENTER
+                text: "HOME"
+                text_color: 0xFFD27F
+                text_font: font_nav
+          on_click:
+            - lvgl.page.show: page_home
+
+      - obj:
+          align: BOTTOM_MID
+          y: -8
+          width: 96
+          height: 44
+          bg_color: 0x0A1428
+          bg_opa: COVER
+          border_width: 1
+          border_color: 0x4FB3FF
+          radius: 10
+          widgets:
+            - label:
+                align: CENTER
+                text: "STATS"
+                text_color: 0x4FB3FF
+                text_font: font_nav
+          on_click:
+            - lvgl.page.show: page_stats
+
+      - obj:
+          align: BOTTOM_RIGHT
+          x: -8
+          y: -8
+          width: 96
+          height: 44
+          bg_color: 0x280A0A
+          bg_opa: COVER
+          border_width: 1
+          border_color: 0xFF6B6B
+          radius: 10
+          widgets:
+            - label:
+                align: CENTER
+                text: "ABOUT"
+                text_color: 0xFF6B6B
+                text_font: font_nav
+          on_click:
+            - lvgl.page.show: page_about
+```
+
+## YAML source — บท 05 NTP Clock
+
+File: `lessons/05-time/time-display.yaml`
+
+```yaml
+# time-display.yaml — บทที่ 5: นาฬิกา NTP บนจอ
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ดึงเวลาจาก NTP แล้วโชว์บน LVGL — เรียนรู้ time component
+#            + interval update + strftime
+#
+#   uvx esphome compile time-display.yaml
+
+esphome:
+  name: kru32-time
+  friendly_name: Kru32 Clock
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+time:
+  - platform: sntp
+    id: ntp_time
+    timezone: Asia/Bangkok
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_clock
+    size: 64
+  - file: "gfonts://Roboto"
+    id: font_date
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 18
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+interval:
+  - interval: 1s
+    then:
+      - lvgl.label.update:
+          id: lbl_time
+          text: !lambda |-
+            auto now = id(ntp_time).now();
+            if (!now.is_valid()) return std::string("--:--");
+            char buf[6];
+            snprintf(buf, sizeof(buf), "%02d:%02d", now.hour, now.minute);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_seconds
+          text: !lambda |-
+            auto now = id(ntp_time).now();
+            if (!now.is_valid()) return std::string("--");
+            char buf[3];
+            snprintf(buf, sizeof(buf), "%02d", now.second);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_date
+          text: !lambda |-
+            auto now = id(ntp_time).now();
+            if (!now.is_valid()) return std::string("Waiting for NTP...");
+            char buf[20];
+            snprintf(buf, sizeof(buf), "%04d-%02d-%02d", now.year, now.month, now.day_of_month);
+            return std::string(buf);
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: clock_page
+      bg_color: 0x000000
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 40
+            text: "Kru32 Clock"
+            text_color: 0x888888
+            text_font: font_label
+        - label:
+            id: lbl_time
+            align: CENTER
+            y: -40
+            text: "--:--"
+            text_color: 0xFFD27F
+            text_font: font_clock
+        - label:
+            id: lbl_seconds
+            align: CENTER
+            y: 20
+            text: "--"
+            text_color: 0x4FB3FF
+            text_font: font_date
+        - label:
+            id: lbl_date
+            align: CENTER
+            y: 60
+            text: "Waiting for NTP..."
+            text_color: 0xAAAAAA
+            text_font: font_date
+        - label:
+            align: BOTTOM_MID
+            y: -30
+            text: "NTP: pool.ntp.org"
+            text_color: 0x444444
+            text_font: font_label
+```
+
+## YAML source — บท 06 WiFi Status
+
+File: `lessons/06-http/http-display.yaml`
+
+```yaml
+# http-display.yaml — บทที่ 6: ดึงข้อมูลจาก HTTP แล้วแสดงผล
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ใช้ http_request + text_sensor เพื่อ fetch ข้อมูล
+#            แล้วโชว์บน LVGL — เรียนรู้ async data + display update
+#
+#   uvx esphome compile http-display.yaml
+
+esphome:
+  name: kru32-http
+  friendly_name: Kru32 HTTP
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+http_request:
+  useragent: "kru32/1.0"
+  timeout: 10s
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 10s
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_signal_sensor
+    update_interval: 30s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: wifi_ip
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 28
+  - file: "gfonts://Roboto"
+    id: font_value
+    size: 36
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 16
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+interval:
+  - interval: 10s
+    then:
+      - lvgl.label.update:
+          id: lbl_uptime
+          text: !lambda |-
+            int sec = (int)id(uptime_sensor).state;
+            int h = sec / 3600;
+            int m = (sec % 3600) / 60;
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%dh %dm", h, m);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_wifi
+          text: !lambda |-
+            int rssi = (int)id(wifi_signal_sensor).state;
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%d dBm", rssi);
+            return std::string(buf);
+      - lvgl.bar.update:
+          id: wifi_bar
+          value: !lambda |-
+            int rssi = (int)id(wifi_signal_sensor).state;
+            return std::max(0, std::min(100, (rssi + 100) * 2));
+      - lvgl.label.update:
+          id: lbl_ip
+          text: !lambda |-
+            if (id(wifi_ip).has_state()) return id(wifi_ip).state;
+            return std::string("connecting...");
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: data_page
+      bg_color: 0x0A0A14
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 20
+            text: "Network Status"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - obj:
+            x: 20
+            y: 80
+            width: 280
+            height: 80
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x2A2A4A
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "WiFi Signal"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_wifi
+                  align: TOP_RIGHT
+                  text: "-- dBm"
+                  text_color: 0x4FB3FF
+                  text_font: font_label
+              - bar:
+                  id: wifi_bar
+                  align: BOTTOM_MID
+                  width: 250
+                  height: 12
+                  min_value: 0
+                  max_value: 100
+                  value: 0
+                  bg_color: 0x1F1F3F
+                  bg_opa: COVER
+                  radius: 6
+                  indicator:
+                    bg_color: 0x4FB3FF
+                    radius: 6
+
+        - obj:
+            x: 20
+            y: 180
+            width: 280
+            height: 70
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x2A2A4A
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "IP Address"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_ip
+                  align: BOTTOM_LEFT
+                  text: "connecting..."
+                  text_color: 0x00FF7F
+                  text_font: font_label
+
+        - obj:
+            x: 20
+            y: 270
+            width: 280
+            height: 70
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x2A2A4A
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Uptime"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_uptime
+                  align: BOTTOM_LEFT
+                  text: "0h 0m"
+                  text_color: 0xFFD27F
+                  text_font: font_value
+```
+
+## YAML source — บท 07 Motion & Arcs
+
+File: `lessons/07-animation/animation.yaml`
+
+```yaml
+# animation.yaml — บทที่ 7: LVGL Animations
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ใช้ LVGL arc + spinner + animated bar
+#            เรียนรู้ว่า LVGL จัดการ animation loop ให้เอง
+#
+#   uvx esphome compile animation.yaml
+
+esphome:
+  name: kru32-animation
+  friendly_name: Kru32 Animation
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+globals:
+  - id: progress
+    type: int
+    initial_value: "0"
+
+interval:
+  - interval: 100ms
+    then:
+      - lambda: |-
+          id(progress) += 2;
+          if (id(progress) > 100) id(progress) = 0;
+      - lvgl.arc.update:
+          id: arc_progress
+          value: !lambda "return id(progress);"
+      - lvgl.bar.update:
+          id: bar_progress
+          value: !lambda "return id(progress);"
+      - lvgl.label.update:
+          id: lbl_percent
+          text: !lambda |-
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%d%%", id(progress));
+            return std::string(buf);
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_big
+    size: 48
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 16
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: anim_page
+      bg_color: 0x0A0A14
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 20
+            text: "Animations"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - arc:
+            id: arc_progress
+            align: CENTER
+            y: -60
+            width: 180
+            height: 180
+            min_value: 0
+            max_value: 100
+            value: 0
+            start_angle: 135
+            end_angle: 45
+            bg_color: 0x1F1F3F
+            indicator:
+              arc_color: 0x4FB3FF
+              arc_width: 12
+            arc_width: 12
+
+        - label:
+            id: lbl_percent
+            align: CENTER
+            y: -60
+            text: "0%"
+            text_color: 0xFFFFFF
+            text_font: font_big
+
+        - bar:
+            id: bar_progress
+            align: CENTER
+            y: 80
+            width: 260
+            height: 20
+            min_value: 0
+            max_value: 100
+            value: 0
+            bg_color: 0x1F1F3F
+            bg_opa: COVER
+            radius: 10
+            indicator:
+              bg_color: 0x00FF7F
+              radius: 10
+
+        - spinner:
+            align: CENTER
+            y: 160
+            width: 50
+            height: 50
+            arc_length: 60
+            spin_time: 1000ms
+            indicator:
+              arc_color: 0xFF6B6B
+              arc_width: 6
+            arc_width: 6
+            arc_color: 0x2A2A2A
+
+        - label:
+            align: CENTER
+            y: 200
+            text: "Loading..."
+            text_color: 0x888888
+            text_font: font_small
+```
+
+## YAML source — บท 08 Swipe Pages
+
+File: `lessons/08-gestures/gestures.yaml`
+
+```yaml
+# gestures.yaml — บทที่ 8: Touch Gestures + Swipe Detection
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ตรวจจับ swipe ซ้าย/ขวา เพื่อเปลี่ยนหน้า
+#            เรียนรู้ on_touch / on_release + coordinate delta
+#
+#   uvx esphome compile gestures.yaml
+
+esphome:
+  name: kru32-gestures
+  friendly_name: Kru32 Gestures
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+globals:
+  - id: touch_start_x
+    type: int
+    initial_value: "0"
+  - id: touch_last_x
+    type: int
+    initial_value: "0"
+  - id: current_page
+    type: int
+    initial_value: "0"
+  - id: is_first_touch
+    type: bool
+    initial_value: "true"
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+    on_touch:
+      - lambda: |-
+          if (id(is_first_touch)) {
+            id(touch_start_x) = touch.x;
+            id(is_first_touch) = false;
+          }
+          id(touch_last_x) = touch.x;
+    on_release:
+      - lambda: |-
+          int dx = id(touch_last_x) - id(touch_start_x);
+          if (dx < -50) {
+            id(current_page) = std::min(2, id(current_page) + 1);
+          } else if (dx > 50) {
+            id(current_page) = std::max(0, id(current_page) - 1);
+          }
+          id(is_first_touch) = true;
+      - if:
+          condition:
+            lambda: "return id(current_page) == 0;"
+          then:
+            - lvgl.page.show: page_red
+      - if:
+          condition:
+            lambda: "return id(current_page) == 1;"
+          then:
+            - lvgl.page.show: page_green
+      - if:
+          condition:
+            lambda: "return id(current_page) == 2;"
+          then:
+            - lvgl.page.show: page_blue
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_big
+    size: 48
+  - file: "gfonts://Roboto"
+    id: font_hint
+    size: 18
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: page_red
+      bg_color: 0x1A0505
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: CENTER
+            y: -20
+            text: "Page 1"
+            text_color: 0xFF6B6B
+            text_font: font_big
+        - label:
+            align: CENTER
+            y: 40
+            text: "Swipe left"
+            text_color: 0x888888
+            text_font: font_hint
+
+    - id: page_green
+      bg_color: 0x051A05
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: CENTER
+            y: -20
+            text: "Page 2"
+            text_color: 0x00FF7F
+            text_font: font_big
+        - label:
+            align: CENTER
+            y: 40
+            text: "Swipe left or right"
+            text_color: 0x888888
+            text_font: font_hint
+
+    - id: page_blue
+      bg_color: 0x05051A
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: CENTER
+            y: -20
+            text: "Page 3"
+            text_color: 0x4FB3FF
+            text_font: font_big
+        - label:
+            align: CENTER
+            y: 40
+            text: "Swipe right"
+            text_color: 0x888888
+            text_font: font_hint
+```
+
+## YAML source — บท 09 Color Themes
+
+File: `lessons/09-themes/themes.yaml`
+
+```yaml
+# themes.yaml — บทที่ 9: Color Themes — สลับธีมด้วยปุ่ม
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ปุ่ม 3 ปุ่มเปลี่ยนสี bg/text/accent ทั้งหน้า
+#            เรียนรู้ lvgl.widget.update สำหรับ style change runtime
+#
+#   uvx esphome compile themes.yaml
+
+esphome:
+  name: kru32-themes
+  friendly_name: Kru32 Themes
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 28
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 20
+  - file: "gfonts://Roboto"
+    id: font_btn
+    size: 16
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: theme_page
+      bg_color: 0x0A0A14
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            id: lbl_title
+            align: TOP_MID
+            y: 30
+            text: "Theme Demo"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - obj:
+            id: card_demo
+            align: CENTER
+            y: -40
+            width: 260
+            height: 120
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 16
+            border_width: 2
+            border_color: 0xFFD27F
+            pad_all: 16
+            widgets:
+              - label:
+                  id: lbl_card_title
+                  align: TOP_LEFT
+                  text: "Sample Card"
+                  text_color: 0xFFFFFF
+                  text_font: font_body
+              - label:
+                  id: lbl_card_body
+                  align: CENTER
+                  text: "Touch a theme below"
+                  text_color: 0xAAAAAA
+                  text_font: font_body
+              - bar:
+                  id: theme_bar
+                  align: BOTTOM_MID
+                  width: 220
+                  height: 10
+                  min_value: 0
+                  max_value: 100
+                  value: 70
+                  bg_color: 0x1F1F3F
+                  bg_opa: COVER
+                  radius: 5
+                  indicator:
+                    bg_color: 0xFFD27F
+                    radius: 5
+
+        # Theme buttons
+        - obj:
+            align: CENTER
+            y: 80
+            width: 80
+            height: 50
+            bg_color: 0x1A0A2A
+            bg_opa: COVER
+            radius: 10
+            border_width: 1
+            border_color: 0xBB86FC
+            x: -90
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Purple"
+                  text_color: 0xBB86FC
+                  text_font: font_btn
+            on_click:
+              - lvgl.label.update:
+                  id: lbl_title
+                  text_color: 0xBB86FC
+              - lvgl.widget.update:
+                  id: card_demo
+                  border_color: 0xBB86FC
+
+        - obj:
+            align: CENTER
+            y: 80
+            width: 80
+            height: 50
+            bg_color: 0x0A1A1A
+            bg_opa: COVER
+            radius: 10
+            border_width: 1
+            border_color: 0x03DAC5
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Teal"
+                  text_color: 0x03DAC5
+                  text_font: font_btn
+            on_click:
+              - lvgl.label.update:
+                  id: lbl_title
+                  text_color: 0x03DAC5
+              - lvgl.widget.update:
+                  id: card_demo
+                  border_color: 0x03DAC5
+
+        - obj:
+            align: CENTER
+            y: 80
+            width: 80
+            height: 50
+            bg_color: 0x1A1A0A
+            bg_opa: COVER
+            radius: 10
+            border_width: 1
+            border_color: 0xFFD27F
+            x: 90
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Gold"
+                  text_color: 0xFFD27F
+                  text_font: font_btn
+            on_click:
+              - lvgl.label.update:
+                  id: lbl_title
+                  text_color: 0xFFD27F
+              - lvgl.widget.update:
+                  id: card_demo
+                  border_color: 0xFFD27F
+```
+
+## YAML source — บท 10 Data Cards
+
+File: `lessons/10-sensors/sensors.yaml`
+
+```yaml
+# sensors.yaml — บทที่ 10: Template Sensors + Display Cards
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: สร้าง internal sensor จำลอง (template) แล้วโชว์ใน card layout
+#            เรียนรู้ sensor → LVGL pipeline + on_value trigger
+#
+#   uvx esphome compile sensors.yaml
+
+esphome:
+  name: kru32-sensors
+  friendly_name: Kru32 Sensors
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+globals:
+  - id: sim_temp
+    type: float
+    initial_value: "25.0"
+  - id: sim_humidity
+    type: float
+    initial_value: "60.0"
+
+interval:
+  - interval: 3s
+    then:
+      - lambda: |-
+          id(sim_temp) += 0.5;
+          if (id(sim_temp) > 35.0) id(sim_temp) = 20.0;
+          id(sim_humidity) -= 1.0;
+          if (id(sim_humidity) < 30.0) id(sim_humidity) = 80.0;
+      - component.update: temp_sensor
+      - component.update: humidity_sensor
+
+sensor:
+  - platform: template
+    name: "Temperature"
+    id: temp_sensor
+    unit_of_measurement: "C"
+    accuracy_decimals: 1
+    lambda: "return id(sim_temp);"
+    update_interval: never
+    on_value:
+      - lvgl.label.update:
+          id: lbl_temp
+          text: !lambda |-
+            char buf[10];
+            snprintf(buf, sizeof(buf), "%.1f C", x);
+            return std::string(buf);
+      - lvgl.bar.update:
+          id: bar_temp
+          value: !lambda "return (int)x;"
+
+  - platform: template
+    name: "Humidity"
+    id: humidity_sensor
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    lambda: "return id(sim_humidity);"
+    update_interval: never
+    on_value:
+      - lvgl.label.update:
+          id: lbl_humidity
+          text: !lambda |-
+            char buf[10];
+            snprintf(buf, sizeof(buf), "%.0f %%", x);
+            return std::string(buf);
+      - lvgl.bar.update:
+          id: bar_humidity
+          value: !lambda "return (int)x;"
+
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sec
+    update_interval: 10s
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_value
+    size: 36
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 14
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: sensor_page
+      bg_color: 0x080810
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 16
+            text: "Sensor Dashboard"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - obj:
+            x: 20
+            y: 60
+            width: 280
+            height: 130
+            bg_color: 0x0F1428
+            bg_opa: COVER
+            radius: 14
+            border_width: 1
+            border_color: 0xFF6B6B
+            pad_all: 14
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Temperature"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_temp
+                  align: CENTER
+                  y: -5
+                  text: "25.0 C"
+                  text_color: 0xFF6B6B
+                  text_font: font_value
+              - bar:
+                  id: bar_temp
+                  align: BOTTOM_MID
+                  width: 240
+                  height: 10
+                  min_value: 20
+                  max_value: 35
+                  value: 25
+                  bg_color: 0x1F1F2F
+                  bg_opa: COVER
+                  radius: 5
+                  indicator:
+                    bg_color: 0xFF6B6B
+                    radius: 5
+
+        - obj:
+            x: 20
+            y: 210
+            width: 280
+            height: 130
+            bg_color: 0x0F1428
+            bg_opa: COVER
+            radius: 14
+            border_width: 1
+            border_color: 0x4FB3FF
+            pad_all: 14
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Humidity"
+                  text_color: 0x888888
+                  text_font: font_label
+              - label:
+                  id: lbl_humidity
+                  align: CENTER
+                  y: -5
+                  text: "60 %"
+                  text_color: 0x4FB3FF
+                  text_font: font_value
+              - bar:
+                  id: bar_humidity
+                  align: BOTTOM_MID
+                  width: 240
+                  height: 10
+                  min_value: 30
+                  max_value: 80
+                  value: 60
+                  bg_color: 0x1F1F2F
+                  bg_opa: COVER
+                  radius: 5
+                  indicator:
+                    bg_color: 0x4FB3FF
+                    radius: 5
+```
+
+## YAML source — บท 11 NVS Memory
+
+File: `lessons/11-persistent/persistent.yaml`
+
+```yaml
+# persistent.yaml — บทที่ 11: Persistent State — ค่ารอด reboot
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: globals + restore_value: yes → ค่ารอดผ่าน reboot
+#            เรียนรู้ NVS flash storage + boot counter pattern
+#
+#   uvx esphome compile persistent.yaml
+
+esphome:
+  name: kru32-persistent
+  friendly_name: Kru32 Persistent
+  on_boot:
+    priority: 200
+    then:
+      - lambda: |-
+          id(boot_count) += 1;
+          id(session_taps) = 0;
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+globals:
+  - id: boot_count
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: total_taps
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: high_score
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: session_taps
+    type: int
+    restore_value: no
+    initial_value: "0"
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_big
+    size: 48
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 16
+
+interval:
+  - interval: 1s
+    then:
+      - lvgl.label.update:
+          id: lbl_boots
+          text: !lambda |-
+            char buf[16];
+            snprintf(buf, sizeof(buf), "Boots: %d", id(boot_count));
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_total
+          text: !lambda |-
+            char buf[20];
+            snprintf(buf, sizeof(buf), "Total: %d", id(total_taps));
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_session
+          text: !lambda |-
+            char buf[20];
+            snprintf(buf, sizeof(buf), "Session: %d", id(session_taps));
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_high
+          text: !lambda |-
+            char buf[20];
+            snprintf(buf, sizeof(buf), "High: %d", id(high_score));
+            return std::string(buf);
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: persist_page
+      bg_color: 0x080810
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 20
+            text: "Persistent State"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - label:
+            id: lbl_boots
+            align: CENTER
+            y: -100
+            text: "Boots: 0"
+            text_color: 0xFF6B6B
+            text_font: font_label
+
+        - label:
+            id: lbl_session
+            align: CENTER
+            y: -60
+            text: "Session: 0"
+            text_color: 0x4FB3FF
+            text_font: font_big
+
+        - label:
+            id: lbl_total
+            align: CENTER
+            y: 0
+            text: "Total: 0"
+            text_color: 0x00FF7F
+            text_font: font_label
+
+        - label:
+            id: lbl_high
+            align: CENTER
+            y: 30
+            text: "High: 0"
+            text_color: 0xBB86FC
+            text_font: font_label
+
+        - obj:
+            align: CENTER
+            y: 100
+            width: 220
+            height: 70
+            bg_color: 0x1F3540
+            bg_opa: COVER
+            radius: 14
+            border_width: 2
+            border_color: 0x4FB3FF
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "TAP ME"
+                  text_color: 0x4FB3FF
+                  text_font: font_title
+            on_click:
+              - lambda: |-
+                  id(session_taps) += 1;
+                  id(total_taps) += 1;
+                  if (id(session_taps) > id(high_score)) {
+                    id(high_score) = id(session_taps);
+                  }
+```
+
+## YAML source — บท 12 Dropdown & Roller
+
+File: `lessons/12-dropdown/dropdown.yaml`
+
+```yaml
+# dropdown.yaml — บทที่ 12: LVGL Dropdown + Roller
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: ใช้ LVGL dropdown เพื่อเลือก option → เปลี่ยน state
+#            เรียนรู้ dropdown on_change + roller widget
+#
+#   uvx esphome compile dropdown.yaml
+
+esphome:
+  name: kru32-dropdown
+  friendly_name: Kru32 Dropdown
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 20
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 16
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: select_page
+      bg_color: 0x080810
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 20
+            text: "Select Mode"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - label:
+            align: TOP_MID
+            y: 60
+            text: "Board:"
+            text_color: 0x888888
+            text_font: font_small
+
+        - dropdown:
+            id: board_select
+            align: TOP_MID
+            y: 85
+            width: 260
+            options:
+              - "JC3248W535"
+              - "WT32-SC01 Plus"
+              - "Waveshare 7"
+              - "Waveshare 2.8B"
+            selected_index: 0
+            text_font: font_body
+            on_change:
+              - lvgl.label.update:
+                  id: lbl_selected
+                  text: !lambda |-
+                    switch (x) {
+                      case 0: return std::string("QSPI 320x480");
+                      case 1: return std::string("8080 320x480");
+                      case 2: return std::string("RGB 800x480");
+                      case 3: return std::string("RGB 480x640");
+                      default: return std::string("Unknown");
+                    }
+
+        - label:
+            align: CENTER
+            y: -10
+            text: "Brightness:"
+            text_color: 0x888888
+            text_font: font_small
+
+        - roller:
+            id: brightness_roller
+            align: CENTER
+            y: 40
+            width: 200
+            options:
+              - "10%"
+              - "20%"
+              - "30%"
+              - "40%"
+              - "50%"
+              - "60%"
+              - "70%"
+              - "80%"
+              - "90%"
+              - "100%"
+            selected_index: 9
+            visible_row_count: 3
+            text_font: font_body
+            on_change:
+              - light.turn_on:
+                  id: backlight
+                  brightness: !lambda "return (x + 1) * 0.1;"
+
+        - obj:
+            align: CENTER
+            y: 150
+            width: 260
+            height: 60
+            bg_color: 0x141428
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x4FB3FF
+            pad_all: 10
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Selected bus:"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  id: lbl_selected
+                  align: BOTTOM_LEFT
+                  text: "QSPI 320x480"
+                  text_color: 0x4FB3FF
+                  text_font: font_body
+```
+
+## YAML source — บท 13 Timer State Machine
+
+File: `lessons/13-automation/automation.yaml`
+
+```yaml
+# automation.yaml — บทที่ 14: Complex Automations + State Machine
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: automations หลายขั้น — timer countdown + state transitions
+#            กดปุ่ม Start → countdown → Done → Reset
+#
+#   uvx esphome compile automation.yaml
+
+esphome:
+  name: kru32-automation
+  friendly_name: Kru32 Automation
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+globals:
+  - id: timer_value
+    type: int
+    initial_value: "30"
+  - id: timer_running
+    type: bool
+    initial_value: "false"
+  - id: state
+    type: int
+    initial_value: "0"
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          if (id(timer_running) && id(timer_value) > 0) {
+            id(timer_value) -= 1;
+            if (id(timer_value) == 0) {
+              id(timer_running) = false;
+              id(state) = 2;  // done
+            }
+          }
+      - lvgl.label.update:
+          id: lbl_timer
+          text: !lambda |-
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d", id(timer_value));
+            return std::string(buf);
+      - lvgl.arc.update:
+          id: arc_timer
+          value: !lambda "return id(timer_value);"
+      - lvgl.label.update:
+          id: lbl_state
+          text: !lambda |-
+            switch (id(state)) {
+              case 0: return std::string("Ready");
+              case 1: return std::string("Running...");
+              case 2: return std::string("Done!");
+              default: return std::string("---");
+            }
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 22
+  - file: "gfonts://Roboto"
+    id: font_timer
+    size: 72
+  - file: "gfonts://Roboto"
+    id: font_state
+    size: 24
+  - file: "gfonts://Roboto"
+    id: font_btn
+    size: 20
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: timer_page
+      bg_color: 0x080810
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 16
+            text: "Timer Automation"
+            text_color: 0xFFD27F
+            text_font: font_title
+
+        - arc:
+            id: arc_timer
+            align: CENTER
+            y: -50
+            width: 200
+            height: 200
+            min_value: 0
+            max_value: 30
+            value: 30
+            start_angle: 135
+            end_angle: 45
+            bg_color: 0x1F1F3F
+            indicator:
+              arc_color: 0x00FF7F
+              arc_width: 14
+            arc_width: 14
+
+        - label:
+            id: lbl_timer
+            align: CENTER
+            y: -50
+            text: "30"
+            text_color: 0xFFFFFF
+            text_font: font_timer
+
+        - label:
+            id: lbl_state
+            align: CENTER
+            y: 70
+            text: "Ready"
+            text_color: 0x4FB3FF
+            text_font: font_state
+
+        - obj:
+            align: CENTER
+            y: 130
+            width: 130
+            height: 50
+            bg_color: 0x0A3A1A
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0x00FF7F
+            x: -70
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Start"
+                  text_color: 0x00FF7F
+                  text_font: font_btn
+            on_click:
+              - lambda: |-
+                  if (id(state) != 1) {
+                    id(timer_value) = 30;
+                    id(timer_running) = true;
+                    id(state) = 1;
+                  }
+
+        - obj:
+            align: CENTER
+            y: 130
+            width: 130
+            height: 50
+            bg_color: 0x3A0A0A
+            bg_opa: COVER
+            radius: 12
+            border_width: 1
+            border_color: 0xFF6B6B
+            x: 70
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "Reset"
+                  text_color: 0xFF6B6B
+                  text_font: font_btn
+            on_click:
+              - lambda: |-
+                  id(timer_value) = 30;
+                  id(timer_running) = false;
+                  id(state) = 0;
+```
+
+## YAML source — บท 14 Brewing Dashboard
+
+File: `lessons/14-dashboard/dashboard.yaml`
+
+```yaml
+# dashboard.yaml — บทที่ 15: Brewing Dashboard (simplified)
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: รวม cards + bars + labels + pages เป็น dashboard เต็มรูปแบบ
+#            จำลอง brewing data (จาก template sensors)
+#            นี่คือ simplified version ของ config จริงที่ esp32-oracle ใช้
+#
+#   uvx esphome compile dashboard.yaml
+
+esphome:
+  name: kru32-dashboard
+  friendly_name: Kru32 Dashboard
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+globals:
+  - id: brew_day
+    type: int
+    initial_value: "5"
+  - id: brew_temp
+    type: float
+    initial_value: "22.5"
+
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          id(brew_temp) += 0.1;
+          if (id(brew_temp) > 26.0) id(brew_temp) = 20.0;
+      - lvgl.label.update:
+          id: lbl_temp_val
+          text: !lambda |-
+            char buf[10];
+            snprintf(buf, sizeof(buf), "%.1f C", id(brew_temp));
+            return std::string(buf);
+      - lvgl.bar.update:
+          id: bar_day
+          value: !lambda "return id(brew_day);"
+      - lvgl.label.update:
+          id: lbl_day_val
+          text: !lambda |-
+            char buf[10];
+            snprintf(buf, sizeof(buf), "Day %d/14", id(brew_day));
+            return std::string(buf);
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_brand
+    size: 22
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 18
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 14
+  - file: "gfonts://Roboto"
+    id: font_value
+    size: 32
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: brew_page
+      bg_color: 0x000000
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        # Header card
+        - obj:
+            x: 8
+            y: 8
+            width: 304
+            height: 60
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Kru32 Brewing"
+                  text_color: 0xFFFFFF
+                  text_font: font_brand
+              - obj:
+                  align: TOP_RIGHT
+                  width: 90
+                  height: 24
+                  bg_color: 0x0A1419
+                  bg_opa: COVER
+                  border_width: 1
+                  border_color: 0x00FF7F
+                  radius: 12
+                  widgets:
+                    - label:
+                        id: lbl_status
+                        align: CENTER
+                        text: "ACTIVE"
+                        text_color: 0x00FF7F
+                        text_font: font_small
+
+        # Day progress card
+        - obj:
+            x: 8
+            y: 76
+            width: 304
+            height: 100
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Fermentation Progress"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  id: lbl_day_val
+                  align: CENTER
+                  y: 5
+                  text: "Day 5/14"
+                  text_color: 0xFFD27F
+                  text_font: font_value
+              - bar:
+                  id: bar_day
+                  align: BOTTOM_MID
+                  width: 270
+                  height: 10
+                  min_value: 0
+                  max_value: 14
+                  value: 5
+                  bg_color: 0x1F1F2F
+                  bg_opa: COVER
+                  radius: 5
+                  indicator:
+                    bg_color: 0xFFD27F
+                    radius: 5
+
+        # Temperature card
+        - obj:
+            x: 8
+            y: 184
+            width: 304
+            height: 90
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Temperature"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  id: lbl_temp_val
+                  align: CENTER
+                  y: 8
+                  text: "22.5 C"
+                  text_color: 0xFF6B6B
+                  text_font: font_value
+
+        # Recipe card
+        - obj:
+            x: 8
+            y: 282
+            width: 148
+            height: 90
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 10
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Batch Size"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  align: CENTER
+                  y: 10
+                  text: "23 L"
+                  text_color: 0x4FB3FF
+                  text_font: font_body
+
+        - obj:
+            x: 164
+            y: 282
+            width: 148
+            height: 90
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 10
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Target ABV"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  align: CENTER
+                  y: 10
+                  text: "5.2%"
+                  text_color: 0x4FB3FF
+                  text_font: font_body
+
+        # Style info
+        - obj:
+            x: 8
+            y: 380
+            width: 304
+            height: 60
+            bg_color: 0x0A1419
+            bg_opa: COVER
+            border_width: 1
+            border_color: 0x1F3540
+            radius: 12
+            pad_all: 12
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Style: IPA"
+                  text_color: 0xFFFFFF
+                  text_font: font_body
+              - label:
+                  align: BOTTOM_LEFT
+                  text: "Grain: 5.2 kg"
+                  text_color: 0x888888
+                  text_font: font_small
+```
+
+## YAML source — บท 15 Production Ready
+
+File: `lessons/15-production/production.yaml`
+
+```yaml
+# production.yaml — บทที่ 16: Production Config — safe mode + fallback + OTA
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: config ที่พร้อม deploy จริง — wifi fallback AP, safe mode,
+#            OTA update, status page, captive portal
+#            เรียนรู้ว่า config "production" ต่างจาก "dev" ยังไง
+#
+#   uvx esphome compile production.yaml
+
+esphome:
+  name: kru32-production
+  friendly_name: Kru32 Production
+  on_boot:
+    priority: 600
+    then:
+      - light.turn_on:
+          id: backlight
+          brightness: 80%
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: WARN
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของจริงก่อน deploy
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+  ap:
+    ssid: "Kru32-Fallback"
+    password: "kru32fallback"
+  power_save_mode: LIGHT
+
+improv_serial:
+
+captive_portal:
+
+ota:
+  - platform: esphome
+    password: "kru32-ota-pass"
+
+safe_mode:
+  boot_is_good_after: 60s
+  num_attempts: 5
+
+i2c:
+  - id: touch_i2c
+    sda: GPIO4
+    scl: GPIO8
+    frequency: 400kHz
+
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+touchscreen:
+  - platform: axs15231
+    id: my_touch
+    interrupt_pin: GPIO3
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_rssi
+    update_interval: 60s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP"
+      id: wifi_ip
+    ssid:
+      name: "SSID"
+      id: wifi_ssid_info
+
+button:
+  - platform: restart
+    name: "Restart"
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_title
+    size: 22
+  - file: "gfonts://Roboto"
+    id: font_body
+    size: 18
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 14
+
+interval:
+  - interval: 30s
+    then:
+      - lvgl.label.update:
+          id: lbl_ip
+          text: !lambda |-
+            if (id(wifi_ip).has_state()) return id(wifi_ip).state;
+            return std::string("No WiFi");
+      - lvgl.label.update:
+          id: lbl_rssi
+          text: !lambda |-
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%d dBm", (int)id(wifi_rssi).state);
+            return std::string(buf);
+      - lvgl.label.update:
+          id: lbl_uptime
+          text: !lambda |-
+            int s = (int)id(uptime_sensor).state;
+            int h = s / 3600; int m = (s % 3600) / 60;
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%dh %dm", h, m);
+            return std::string(buf);
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    auto_clear_enabled: false
+
+lvgl:
+  displays:
+    - lcd
+  pages:
+    - id: status_page
+      bg_color: 0x080810
+      bg_opa: COVER
+      pad_all: 0
+      radius: 0
+      border_width: 0
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 16
+            text: "Production Status"
+            text_color: 0x00FF7F
+            text_font: font_title
+
+        - obj:
+            x: 16
+            y: 60
+            width: 288
+            height: 280
+            bg_color: 0x0F1420
+            bg_opa: COVER
+            radius: 14
+            border_width: 1
+            border_color: 0x1F3540
+            pad_all: 16
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Network"
+                  text_color: 0x888888
+                  text_font: font_small
+
+              - label:
+                  align: TOP_LEFT
+                  y: 30
+                  text: "IP:"
+                  text_color: 0x666666
+                  text_font: font_small
+              - label:
+                  id: lbl_ip
+                  align: TOP_LEFT
+                  y: 28
+                  x: 40
+                  text: "connecting..."
+                  text_color: 0x4FB3FF
+                  text_font: font_body
+
+              - label:
+                  align: TOP_LEFT
+                  y: 65
+                  text: "RSSI:"
+                  text_color: 0x666666
+                  text_font: font_small
+              - label:
+                  id: lbl_rssi
+                  align: TOP_LEFT
+                  y: 63
+                  x: 50
+                  text: "-- dBm"
+                  text_color: 0xFFD27F
+                  text_font: font_body
+
+              - label:
+                  align: TOP_LEFT
+                  y: 100
+                  text: "Uptime:"
+                  text_color: 0x666666
+                  text_font: font_small
+              - label:
+                  id: lbl_uptime
+                  align: TOP_LEFT
+                  y: 98
+                  x: 60
+                  text: "0h 0m"
+                  text_color: 0x00FF7F
+                  text_font: font_body
+
+              - label:
+                  align: TOP_LEFT
+                  y: 145
+                  text: "Features"
+                  text_color: 0x888888
+                  text_font: font_small
+              - label:
+                  align: TOP_LEFT
+                  y: 170
+                  text: "OTA: enabled"
+                  text_color: 0x00FF7F
+                  text_font: font_small
+              - label:
+                  align: TOP_LEFT
+                  y: 192
+                  text: "Safe Mode: 5 attempts"
+                  text_color: 0x00FF7F
+                  text_font: font_small
+              - label:
+                  align: TOP_LEFT
+                  y: 214
+                  text: "Fallback AP: Kru32-Fallback"
+                  text_color: 0xFFD27F
+                  text_font: font_small
+              - label:
+                  align: TOP_LEFT
+                  y: 236
+                  text: "Captive Portal: enabled"
+                  text_color: 0x00FF7F
+                  text_font: font_small
+```
+
+## YAML source — บท 16 GIF Animation
+
+File: `lessons/16-gif-animation/gif-animation.yaml`
+
+```yaml
+# gif-animation.yaml — บทที่ 16: GIF Animation Frames
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI)
+# เป้าหมาย: เล่น GIF หลายเฟรมด้วย animation: component
+#            display update_interval เป็นตัวเดินเฟรม — next_frame() ทุกรอบ
+#            (ball.gif สร้างจาก Pillow — ลูกบอลเด้ง 8 เฟรม 96x96)
+#
+#   uvx esphome compile gif-animation.yaml
+
+esphome:
+  name: kru32-gif
+  friendly_name: Kru32 GIF
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+# wifi: เปลี่ยน ssid/password เป็นของคุณเอง
+wifi:
+  ssid: kru32-dev
+  password: kru32pass123
+
+# Improv Serial — ให้หน้า Config WiFi (แยกจาก flash) คุยกับบอร์ดได้
+improv_serial:
+
+# ── QSPI bus ──
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+# ── Backlight ──
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# ── Animation: GIF 8 เฟรม โหลดเข้า flash ตอน compile ──
+animation:
+  - file: "ball.gif"
+    id: ball_anim
+    type: RGB565
+
+# ── Font: ประกาศ glyphs ทุกตัวที่ใช้ ──
+font:
+  - file: "gfonts://Roboto"
+    id: font_label
+    size: 24
+    glyphs: "Kru32 GIFanimto"
+
+# ── จอ: update_interval 80ms = ตัวเดินเฟรม GIF ──
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: 80ms
+    lambda: |-
+      id(ball_anim).next_frame();
+      it.fill(Color::BLACK);
+      it.print(160, 60, id(font_label), Color(0xFF, 0xD2, 0x7F),
+               TextAlign::CENTER, "Kru32 GIF animation");
+      it.image((320 - 96) / 2, (480 - 96) / 2, id(ball_anim));
+```
+

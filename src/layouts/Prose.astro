@@ -5,11 +5,28 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 // บทความ blog ตั้ง backHref: /blog ใน frontmatter เพื่อกลับไปหน้ารวมบทความ (default = หน้าแรก)
 const backHref = frontmatter?.backHref ?? "/";
 const backLabel = frontmatter?.backLabel ?? "← กลับหน้ารวมบท";
+// ดาวน์โหลด Markdown ต้นฉบับ — build จะ copy src/pages/blog/*.md → public/blog-md/ (scripts/sync-blog-md.ts)
+// slug จาก URL path สุดท้าย (เฉพาะบทความ blog ที่ตั้ง mdSlug ใน frontmatter)
+const mdSlug = frontmatter?.mdSlug;
 ---
 
-<Base title={frontmatter?.title ?? "Kru32 Oracle"} description={frontmatter?.description}>
+<Base
+  title={frontmatter?.title ?? "Kru32 Oracle"}
+  description={frontmatter?.description}
+  type="article"
+  date={frontmatter?.date}
+>
   <div class="relative max-w-[760px] mx-auto px-6 py-8 pb-16">
-    <a href={`${base}${backHref}`} class="font-display text-[11px] text-[#4dc4ff] hover:underline">{backLabel}</a>
+    <div class="flex items-center justify-between gap-3">
+      <a href={`${base}${backHref}`} class="font-display text-[11px] text-[#4dc4ff] hover:underline">{backLabel}</a>
+      {mdSlug && (
+        <a
+          href={`${base}/blog-md/${mdSlug}.md`}
+          download
+          class="font-display text-[11px] text-[#6f8ba0] hover:text-[#4dc4ff] hover:underline"
+        >📄 ดาวน์โหลด Markdown</a>
+      )}
+    </div>
     <article class="mt-6 kru-prose">
       <slot />
     </article>

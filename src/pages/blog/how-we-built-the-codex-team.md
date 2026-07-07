@@ -5,6 +5,8 @@ description: "เบื้องหลังการตั้งทีม AI co
 date: 2026-07-07
 backHref: /blog
 backLabel: "← กลับหน้ารวมบทความ"
+mdSlug: how-we-built-the-codex-team
+tags: ["ทีม", "เบื้องหลัง"]
 ---
 
 # เราสร้างทีม Codex ยังไง
