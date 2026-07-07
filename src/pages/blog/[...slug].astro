@@ -8,11 +8,11 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 // mdSlug = entry id → ลิงก์ดาวน์โหลด public/blog-md/<id>.md (sync-blog-md.ts)
 const frontmatter = { ...post.data, mdSlug: post.id };
 ---
 
-<Prose frontmatter={frontmatter}>
+<Prose frontmatter={frontmatter} headings={headings}>
   <Content />
 </Prose>
