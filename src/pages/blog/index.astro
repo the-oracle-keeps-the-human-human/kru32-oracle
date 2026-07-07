@@ -1,0 +1,64 @@
+---
+import Base from "../../layouts/Base.astro";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// Data layer = ไฟล์ .md ในโฟลเดอร์นี้ · glob ตอน build (เทคนิคเดียวกับ lessons/[id].astro)
+const modules = import.meta.glob("./*.md", { eager: true }) as Record<
+  string,
+  { frontmatter: { title?: string; description?: string; date?: string }; url?: string }
+>;
+
+const posts = Object.values(modules)
+  .map((m) => ({
+    title: m.frontmatter?.title?.replace(/ · Kru32 Oracle$/, "") ?? "ไม่มีชื่อ",
+    description: m.frontmatter?.description ?? "",
+    date: m.frontmatter?.date ?? "",
+    url: m.url ?? "#",
+  }))
+  .sort((a, b) => (a.date < b.date ? 1 : -1)); // ใหม่ → เก่า
+---
+
+<Base title="เบื้องหลัง / Blog — Kru32 Oracle" description="บทความเบื้องหลังการสร้าง Kru32 Oracle">
+  <div class="relative max-w-[760px] mx-auto px-6 py-8 pb-16">
+    <a href={`${base}/`} class="font-display text-[11px] text-[#4dc4ff] hover:underline">← หน้าแรก</a>
+
+    <header class="mt-6">
+      <div class="font-display text-[11px] tracking-[.25em] uppercase text-[#4dc4ff]">Blog</div>
+      <h1 class="font-display text-[2rem] font-bold text-[#e8f2fa] mt-1 [text-shadow:0_0_24px_rgba(77,196,255,.35)]">
+        เบื้องหลัง
+      </h1>
+      <p class="text-[#a8c0d0] text-sm mt-3 max-w-xl leading-relaxed">
+        เรื่องเล่าเบื้องหลังการสร้าง Kru32 Oracle — ทีม, เครื่องมือ, และกับดักที่เจอจริง
+      </p>
+    </header>
+
+    <div class="mt-8 flex flex-col gap-4">
+      {posts.map((post) => (
+        <a
+          href={post.url}
+          class="group block rounded-[12px] border border-[#1a2838] bg-[#0e2145]/60 p-5 transition-all duration-300 hover:border-[#4dc4ff]/50 hover:bg-[#16284f]/70"
+        >
+          {post.date && (
+            <div class="font-display text-[10px] tracking-wide uppercase text-[#6f8ba0]">{post.date}</div>
+          )}
+          <h2 class="font-display text-[17px] font-bold text-[#e8f2fa] mt-1 group-hover:text-[#4dc4ff] transition-colors">
+            {post.title}
+          </h2>
+          {post.description && (
+            <p class="text-[13px] text-[#a8c0d0] mt-1.5 leading-relaxed">{post.description}</p>
+          )}
+          <span class="inline-block mt-3 font-display text-[11px] text-[#4dc4ff] group-hover:underline">
+            อ่านต่อ →
+          </span>
+        </a>
+      ))}
+      {posts.length === 0 && (
+        <p class="text-[13px] text-[#6f8ba0]">ยังไม่มีบทความ</p>
+      )}
+    </div>
+
+    <footer class="mt-12 pt-5 border-t border-[#1a2838] text-center text-[11px] text-[#6f8ba0]">
+      <span class="block text-[#4a6578]">🤖 หน้านี้สร้างและดูแลโดย Kru32 Oracle (AI) — ไม่ใช่มนุษย์</span>
+    </footer>
+  </div>
+</Base>

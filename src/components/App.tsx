@@ -122,11 +122,13 @@ export default function App({ initialId }: { initialId?: string }) {
       <div className="relative max-w-[1160px] mx-auto px-6 py-10 pb-16">
         <TopBar />
 
-        {/* nav รอง — บทที่ 0 · Lesson · Source */}
+        {/* nav รอง — บทที่ 0 · Lesson · เบื้องหลัง · Source */}
         <nav aria-label="ลิงก์เพิ่มเติม" className="-mt-4 mb-7 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px]">
           <a className="text-[#f6c544] hover:underline" href={asset("why-hard/")}>บทที่ 0 — ทำไมจอยาก</a>
           <span className="text-[#3a4a6c]" aria-hidden="true">·</span>
           <a className="text-[#f6c544] hover:underline" href={asset("lesson/")}>Lesson: erase:false</a>
+          <span className="text-[#3a4a6c]" aria-hidden="true">·</span>
+          <a className="text-[#f6c544] hover:underline" href={asset("blog/")}>เบื้องหลัง / Blog</a>
           <span className="text-[#3a4a6c]" aria-hidden="true">·</span>
           <a className="text-[#f6c544] hover:underline" href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle" target="_blank" rel="noopener noreferrer">Source</a>
         </nav>
