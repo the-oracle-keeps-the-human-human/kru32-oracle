@@ -18,11 +18,12 @@ members:
   - role: lead
     name: kru32-oracle
     engine: claude
+    worktree: false   # lead = session ปัจจุบัน ไม่ต้อง worktree (#258)
 
   - role: assistant
     name: assistant
     engine: omx-1
-    # ไม่ใส่ worktree = share cwd กับ lead (แก้ code ด้วยกัน)
+    worktree: false   # opt-out explicit (#258) = share cwd กับ lead (แก้ code ด้วยกัน)
 
   - role: compile
     name: compile
