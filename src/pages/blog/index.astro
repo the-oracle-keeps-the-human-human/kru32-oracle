@@ -83,29 +83,50 @@ const hasPosts = posts.length > 0;
         เบื้องหลัง
       </h1>
       <p class="text-[#a8c0d0] text-sm mt-3 max-w-xl mx-auto leading-relaxed">
-        บันทึกการทำงานจริงจากทีม — จัดตามเดือน ใหม่สุดอยู่บน
+        รวมบันทึกจากการทำงานจริงของทีม — ทั้งวิธีตั้งทีม AI, flash firmware, และบทเรียนที่ได้ระหว่างทาง
+        เรียงไว้ตามเดือน บทความล่าสุดอยู่บนสุดเสมอ
       </p>
     </header>
 
-    <div class={`mt-9 grid grid-cols-1 gap-8 items-start ${hasPosts ? "lg:grid-cols-[190px_1fr]" : ""}`}>
+    <div class={`mt-9 grid grid-cols-1 gap-8 items-start ${hasPosts ? "lg:grid-cols-[240px_1fr]" : ""}`}>
       {hasPosts && (
         <aside class="lg:sticky lg:top-24">
           <h2 class="font-display text-[11px] tracking-[.2em] uppercase text-[#4dc4ff]">คลังบทความ</h2>
-          <ul class="mt-3 flex flex-col gap-1">
+          <p class="mt-2 text-[12px] text-[#6f8ba0] leading-relaxed">
+            เลือกเดือนเพื่อเลื่อนไปช่วงเวลานั้น หรือกดหัวข้อเพื่อเปิดอ่านได้เลย
+          </p>
+          <nav class="mt-4 flex flex-col gap-4">
             {months.map((m) => (
-              <li>
+              <div>
                 <a
                   href={`#${m.key}`}
-                  class="group flex items-center justify-between rounded-lg px-3 py-2 text-[13px] text-[#a8c0d0] transition-all hover:bg-[#0e2145]/70 hover:text-[#e8f2fa]"
+                  class="group flex items-center justify-between text-[13px] font-display text-[#cfe0f2] hover:text-[#4dc4ff] transition-colors"
                 >
                   <span>{m.label}</span>
                   <span class="ml-2 rounded-full border border-[#22314f] px-1.5 text-[11px] text-[#6f8ba0] group-hover:border-[#4dc4ff] group-hover:text-[#4dc4ff]">
                     {m.posts.length}
                   </span>
                 </a>
-              </li>
+                <ul class="mt-2 flex flex-col gap-1 border-l border-[#1a2838] pl-3">
+                  {m.posts.map((post) => (
+                    <li>
+                      <a
+                        href={post.url}
+                        class="group flex flex-col rounded-md px-2 py-1.5 transition-colors hover:bg-[#0e2145]/70"
+                      >
+                        <span class="font-mono text-[11px] text-[#6f8ba0] group-hover:text-[#4dc4ff]">
+                          {String(post.day).padStart(2, "0")} {THAI_MONTHS_SHORT[post.month - 1]}
+                        </span>
+                        <span class="text-[12.5px] leading-snug text-[#a8c0d0] group-hover:text-[#e8f2fa]">
+                          {post.title}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </nav>
         </aside>
       )}
 
