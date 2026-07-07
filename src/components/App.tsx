@@ -130,6 +130,8 @@ export default function App({ initialId }: { initialId?: string }) {
           <span className="text-[#3a4a6c]" aria-hidden="true">·</span>
           <a className="text-[#f6c544] hover:underline" href={asset("blog/")}>เบื้องหลัง / Blog</a>
           <span className="text-[#3a4a6c]" aria-hidden="true">·</span>
+          <a className="text-[#f6c544] hover:underline" href={asset("family/")}>🌟 ครอบครัว Oracle</a>
+          <span className="text-[#3a4a6c]" aria-hidden="true">·</span>
           <a className="text-[#f6c544] hover:underline" href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle" target="_blank" rel="noopener noreferrer">Source</a>
         </nav>
 
