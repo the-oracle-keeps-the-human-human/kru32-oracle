@@ -277,49 +277,15 @@ export default function WasmGallery({ apps = WASM_APPS as WasmApp[] }: { apps?: 
           </div>
         </div>
 
-        {/* ESPHome YAML source */}
-        <details className="mt-4 max-w-[600px]">
-          <summary className="text-[11px] text-[#4dc4ff] cursor-pointer hover:underline font-display">
-            📄 ดู ESPHome YAML
-          </summary>
-          <pre className="mt-2 rounded-lg bg-[#0b1b39] border border-[#22304d] p-3 text-[10px] leading-[1.6] text-[#c9bfa6] overflow-x-auto max-h-[320px] overflow-y-auto"><code>{`wifi:
-  ssid: kru32-dev
-  password: kru32pass123
-  ap:
-    ssid: "Kru32-Setup"
-    password: "kru32setup"
-
-improv_serial:
-captive_portal:
-
-sensor:
-  - platform: uptime
-    name: "Uptime"
-    id: uptime_sensor
-  - platform: wifi_signal
-    name: "WiFi Signal"
-    id: wifi_rssi
-
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      id: wifi_ip
-    ssid:
-      id: wifi_ssid_info
-    mac_address:
-      id: wifi_mac
-
-lvgl:
-  pages:
-    - id: info_page
-      bg_color: 0x0B1B39
-      widgets:
-        - label:
-            text: "Kru32 Oracle"
-            text_color: 0xF6C544
-        # SSID / IP / MAC / Signal / Uptime
-        # ดู YAML เต็มที่ GitHub`}</code></pre>
-        </details>
+        {/* Link to source YAML on GitHub */}
+        <a
+          href="https://github.com/the-oracle-keeps-the-human-human/kru32-oracle/blob/main/lessons/00-placeholder/placeholder.yaml"
+          target="_blank"
+          rel="noopener"
+          className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-[#4dc4ff] hover:underline font-display"
+        >
+          📄 ดู ESPHome YAML บน GitHub →
+        </a>
       </section>
 
       <div className="flex flex-col gap-9">
