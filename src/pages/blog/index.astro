@@ -6,6 +6,8 @@ interface BlogFrontmatter {
   description?: string;
   date?: string;
   tags?: string | string[];
+  author?: string;
+  model?: string;
 }
 
 interface BlogModule {
@@ -22,6 +24,8 @@ interface BlogPost {
   url: string;
   tags: string[];
   primaryTag: string;
+  author?: string;
+  model?: string;
 }
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -101,6 +105,8 @@ const posts: BlogPost[] = Object.values(modules)
       url: module.url,
       tags,
       primaryTag,
+      author: frontmatter.author,
+      model: frontmatter.model,
     };
   })
   .sort((a, b) => {
@@ -122,6 +128,8 @@ const groups = posts.reduce((acc, post) => {
 const categories = Object.keys(groups).sort((a, b) => a.localeCompare(b, "th"));
 
 const hasPosts = posts.length > 0;
+// sidebar มีประโยชน์เมื่อมีหลายหมวด — หมวดเดียวให้ทุ่มพื้นที่ให้บทความ (แก้หน้าโล่ง)
+const showSidebar = categories.length >= 2;
 ---
 
 <Base title="บทความ / Blog — Kru32 Oracle" description="รวมบทความ เบื้องหลังทีม วงจรงาน และเก็บประสบการณ์จริงจาก Kru32 Oracle">
@@ -139,7 +147,8 @@ const hasPosts = posts.length > 0;
       </p>
     </header>
 
-    <div class="mt-8 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6 items-start">
+    <div class={`mt-8 grid grid-cols-1 gap-6 items-start ${showSidebar ? "lg:grid-cols-[260px_1fr]" : ""}`}>
+      {showSidebar && (
       <aside class="rounded-2xl border border-[#1a2838] bg-[#0e2145]/45 p-4 lg:sticky lg:top-24">
         <h2 class="font-display text-sm tracking-[.2em] uppercase text-[#4dc4ff]">หมวดบทความ</h2>
         <p class="mt-2 text-[12px] text-[#6f8ba0]">เลือกหมวดเพื่อดูตามกลุ่ม และอ่าน timeline ตามเวลาได้ทันที</p>
@@ -167,6 +176,7 @@ const hasPosts = posts.length > 0;
           )}
         </ul>
       </aside>
+      )}
 
       <main class="space-y-8">
         {!hasPosts ? (
@@ -197,6 +207,8 @@ const hasPosts = posts.length > 0;
                           <time class="font-mono tracking-wide">{post.displayDate}</time>
                           <span class="text-[#2d4e7a]">·</span>
                           <span class="font-display uppercase tracking-[.18em]">{category}</span>
+                          {post.author && (<><span class="text-[#2d4e7a]">·</span><span>{post.author}</span></>)}
+                          {post.model && (<span class="font-mono text-[#4dc4ff]">{post.model}</span>)}
                         </div>
                         <h3 class="mt-2 font-display text-lg leading-tight text-[#e8f2fa] group-hover:text-[#4dc4ff] transition-colors">
                           {post.title}

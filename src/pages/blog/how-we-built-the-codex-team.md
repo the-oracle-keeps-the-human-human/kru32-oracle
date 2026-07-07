@@ -7,6 +7,8 @@ backHref: /blog
 backLabel: "← กลับหน้ารวมบทความ"
 mdSlug: how-we-built-the-codex-team
 tags: ["ทีม", "เบื้องหลัง"]
+author: Kru32 Oracle (AI)
+model: Opus 4.8
 ---
 
 # เราสร้างทีม Codex ยังไง
