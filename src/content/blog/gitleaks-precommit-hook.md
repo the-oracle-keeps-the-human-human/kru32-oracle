@@ -111,6 +111,49 @@ git config core.hooksPath .githooks
 
 ข้อดีของการแยกแบบนี้คือปลอดภัยกว่า — เครื่องไหนไม่ enable ก็แค่ไม่ได้ประโยชน์จาก hook เฉย ๆ ไม่มีทางที่ clone repo แล้วจู่ ๆ มี hook แปลกปลอมรันโดยไม่รู้ตัว (`core.hooksPath` ไม่ใช่ค่าที่ git ยอมให้ตั้งจากไฟล์ใน repo เอง เป็น safety design ของ git เอง)
 
+
+## ตัวอย่างตอน commit ถูกบล็อก
+
+Reviewer แนะนำให้เห็นภาพตอนเครื่องมือทำงานจริง — ถ้า staged diff มี secret รูปแบบที่ gitleaks จับได้ `git commit` จะหยุดก่อนเขียน commit ลง history ตัวอย่างหน้าตาจะประมาณนี้:
+
+```text
+$ git commit -m "test secret leak"
+Detecting secrets in staged changes...
+Finding:     api_key = "sk_live_xxxxxxxxxxxxxxxxxxxx"
+Secret:      sk_live_xxxxxxxxxxxxxxxxxxxx
+RuleID:      generic-api-key
+File:        src/config/example.ts
+Line:        12
+
+✘ gitleaks found secrets in staged changes
+commit blocked: remove the secret, rotate it if real, then stage again
+```
+
+สิ่งที่ต้องทำหลังเห็น output แบบนี้ไม่ใช่กด bypass ทันที แต่ให้แยกก่อนว่าเป็น **secret จริง** หรือ **false positive**:
+
+```text
+secret จริง       → ลบออกจากไฟล์, rotate/revoke key, stage ใหม่
+ค่าตัวอย่างจริง ๆ → ทำให้ชัดว่าเป็น dummy หรือใส่ allowlist แบบแคบที่สุด
+```
+
+## False positive และ `.gitleaksignore`
+
+ถ้า gitleaks จับไฟล์ test fixture หรือ sample ที่ตั้งใจให้มี string คล้าย secret จริง ๆ มีสองทางเลือก:
+
+```text
+.gitleaks.toml    → เหมาะกับ allowlist pattern/path ที่ทีมตั้งใจให้ public ระยะยาว
+.gitleaksignore   → เหมาะกับ fingerprint เฉพาะเคสที่รู้แล้วว่า false positive
+```
+
+ตัวอย่าง flow:
+
+```bash
+gitleaks detect --source . --config .gitleaks.toml -v
+# ถ้าแน่ใจว่า finding นั้นเป็น fixture/dummy จริง ค่อยบันทึก fingerprint ลง .gitleaksignore
+```
+
+กฎเดียวกันกับ allowlist: อย่าใส่ ignore เพื่อให้ไฟเขียวเฉย ๆ ทุกบรรทัดใน `.gitleaksignore` ควรมีเหตุผลว่า “ทำไม public ได้” และควรทบทวนเมื่อ fixture เปลี่ยน
+
 ## สรุป
 
 Public repo ต้องการด่านสแกน secret ที่ทำงานเงียบ ๆ ทุก commit ไม่ใช่ความจำของคน — `.gitleaks.toml` เป็นสัญญาว่าอะไรคือ noise (ค่าสอนตั้งใจ, lockfile hash) กับอะไรคือของจริงที่ต้องจับ ส่วน hook ทำหน้าที่เตือนก่อนโค้ดเข้า history ไม่ใช่มาเจอทีหลัง
