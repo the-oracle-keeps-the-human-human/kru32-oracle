@@ -12,8 +12,16 @@ const { Content, headings } = await render(post);
 // ไฟล์ดาวน์โหลด = id + นามสกุลจริง (.md หรือ .mdx) — sync-blog-md.ts copy ไป public/blog-md/
 const ext = post.filePath && post.filePath.endsWith(".mdx") ? "mdx" : "md";
 const frontmatter = { ...post.data, mdFile: `${post.id}.${ext}` };
+
+// บทความอื่น ๆ ใน sidebar — ใหม่→เก่า ไม่รวมบทความปัจจุบัน (จำกัด 6 อันกันยาวเกิน)
+const allPosts = await getCollection("blog");
+const otherPosts = allPosts
+  .filter((p) => p.id !== post.id)
+  .sort((a, b) => (a.data.date < b.data.date ? 1 : -1))
+  .slice(0, 6)
+  .map((p) => ({ id: p.id, title: p.data.title, date: p.data.date }));
 ---
 
-<Prose frontmatter={frontmatter} headings={headings}>
+<Prose frontmatter={frontmatter} headings={headings} otherPosts={otherPosts}>
   <Content />
 </Prose>

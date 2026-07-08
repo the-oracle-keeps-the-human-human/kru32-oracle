@@ -1,6 +1,6 @@
 ---
 import Base from "./Base.astro";
-const { frontmatter, headings } = Astro.props;
+const { frontmatter, headings, otherPosts } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 // สารบัญ (TOC) — หัวข้อ h2 ของบทความ ใช้ navigate ตอนอ่านเรื่องยาว
 interface Heading {
@@ -12,6 +12,20 @@ const toc: Heading[] = Array.isArray(headings)
   ? (headings as Heading[]).filter((h) => h.depth === 2)
   : [];
 const hasToc = toc.length > 1;
+// บทความอื่น ๆ — sidebar ไม่ใช่แค่ TOC เฉย ๆ ให้ navigate ต่อบทความอื่นได้จากในหน้าเลย
+interface OtherPost {
+  id: string;
+  title: string;
+  date: string;
+}
+const others: OtherPost[] = Array.isArray(otherPosts) ? (otherPosts as OtherPost[]) : [];
+// ลิงก์ data/SEO — feed + llms.txt + sitemap ให้กดดูข้อมูลดิบได้จากในบทความ (GEO/AEO surface)
+const dataLinks = [
+  { label: "JSON feed (/blog.json)", href: `${base}/blog.json` },
+  { label: "llms.txt (แผนที่ให้ AI อ่าน)", href: `${base}/llms.txt` },
+  { label: "Sitemap", href: `${base}/sitemap-index.xml` },
+];
+const hasSidebar = hasToc || others.length > 0;
 // บทความ blog ตั้ง backHref: /blog ใน frontmatter เพื่อกลับไปหน้ารวมบทความ (default = หน้าแรก)
 const backHref = frontmatter?.backHref ?? "/";
 const backLabel = frontmatter?.backLabel ?? "← กลับหน้ารวมบท";
@@ -37,7 +51,7 @@ const displayDate = dateStr
   type="article"
   date={frontmatter?.date}
 >
-  <div class={`relative mx-auto px-6 pt-3 pb-16 ${hasToc ? "max-w-[1040px]" : "max-w-[760px]"}`}>
+  <div class={`relative mx-auto px-6 pt-3 pb-16 ${hasSidebar ? "max-w-[1040px]" : "max-w-[760px]"}`}>
     <div class="sticky top-0 z-30 -mx-6 flex items-center justify-between gap-3 border-b border-[#1a2838]/60 bg-[#0b1b39]/80 px-6 py-3 backdrop-blur-md">
       <a href={`${base}${backHref}`} class="font-display text-[11px] text-[#4dc4ff] hover:underline">{backLabel}</a>
       {mdFile && (
@@ -59,23 +73,58 @@ const displayDate = dateStr
       </div>
     )}
 
-    <div class={`mt-6 grid grid-cols-1 gap-8 items-start ${hasToc ? "lg:grid-cols-[220px_1fr]" : ""}`}>
-      {hasToc && (
-        <aside class="hidden lg:block lg:sticky lg:top-24 order-2 lg:order-1">
-          <h2 class="font-display text-[11px] tracking-[.2em] uppercase text-[#4dc4ff]">สารบัญ</h2>
-          <nav class="mt-3 flex flex-col gap-1 border-l border-[#1a2838]">
-            {toc.map((h) => (
-              <a
-                href={`#${h.slug}`}
-                class="border-l-2 border-transparent -ml-px pl-3 py-1 text-[12.5px] leading-snug text-[#a8c0d0] transition-colors hover:border-[#4dc4ff] hover:text-[#e8f2fa]"
-              >
-                {h.text}
-              </a>
-            ))}
-          </nav>
+    <div class={`mt-6 grid grid-cols-1 gap-8 items-start ${hasSidebar ? "lg:grid-cols-[220px_1fr]" : ""}`}>
+      {hasSidebar && (
+        <aside class="hidden lg:block lg:sticky lg:top-24 order-2 lg:order-1 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
+          {hasToc && (
+            <div>
+              <h2 class="font-display text-[11px] tracking-[.2em] uppercase text-[#4dc4ff]">สารบัญ</h2>
+              <nav class="mt-3 flex flex-col gap-1 border-l border-[#1a2838]">
+                {toc.map((h) => (
+                  <a
+                    href={`#${h.slug}`}
+                    class="border-l-2 border-transparent -ml-px pl-3 py-1 text-[12.5px] leading-snug text-[#a8c0d0] transition-colors hover:border-[#4dc4ff] hover:text-[#e8f2fa]"
+                  >
+                    {h.text}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          )}
+
+          {others.length > 0 && (
+            <div class={hasToc ? "mt-8" : ""}>
+              <h2 class="font-display text-[11px] tracking-[.2em] uppercase text-[#4dc4ff]">บทความอื่น ๆ</h2>
+              <nav class="mt-3 flex flex-col gap-2.5 border-l border-[#1a2838]">
+                {others.map((p) => (
+                  <a
+                    href={`${base}/blog/${p.id}/`}
+                    class="border-l-2 border-transparent -ml-px pl-3 py-0.5 leading-snug transition-colors hover:border-[#4dc4ff] group"
+                  >
+                    <span class="block text-[12px] text-[#a8c0d0] group-hover:text-[#e8f2fa]">{p.title}</span>
+                    <span class="block font-mono text-[10px] text-[#4a6578]">{p.date}</span>
+                  </a>
+                ))}
+              </nav>
+            </div>
+          )}
+
+          <div class="mt-8">
+            <h2 class="font-display text-[11px] tracking-[.2em] uppercase text-[#4dc4ff]">ข้อมูล &amp; SEO</h2>
+            <nav class="mt-3 flex flex-col gap-1 border-l border-[#1a2838]">
+              {dataLinks.map((d) => (
+                <a
+                  href={d.href}
+                  class="border-l-2 border-transparent -ml-px pl-3 py-1 text-[12px] leading-snug text-[#a8c0d0] transition-colors hover:border-[#4dc4ff] hover:text-[#e8f2fa]"
+                >
+                  {d.label}
+                </a>
+              ))}
+            </nav>
+          </div>
         </aside>
       )}
-      <article class={`kru-prose min-w-0 rounded-2xl bg-[#091324]/55 px-5 sm:px-7 py-5 border border-[#141f33]/70 ${hasToc ? "order-1 lg:order-2" : ""}`}>
+      <article class={`kru-prose min-w-0 rounded-2xl bg-[#091324]/55 px-5 sm:px-7 py-5 border border-[#141f33]/70 ${hasSidebar ? "order-1 lg:order-2" : ""}`}>
         <slot />
       </article>
     </div>
