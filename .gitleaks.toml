@@ -1,0 +1,18 @@
+title = "kru32-oracle gitleaks config"
+
+[extend]
+useDefault = true
+
+# ค่าสอนตั้งใจ (public teaching values) — ไม่ใช่ secret หลุด
+# ดู CLAUDE.md > Security (public repo)
+[allowlist]
+regexes = [
+  '''kru32-dev''',
+  '''kru32pass123''',
+  '''kru32-ota-pass''',
+  '''kru32fallback''',
+]
+# lockfile มี hash/canary version string ที่ entropy สูงแต่ไม่ใช่ secret
+paths = [
+  '''bun\.lock''',
+]

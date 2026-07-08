@@ -1,0 +1,11 @@
+#!/bin/sh
+# gitleaks pre-commit — สแกน secret เฉพาะ staged diff ก่อน commit
+# config: .gitleaks.toml (allowlist ค่าสอนตั้งใจ เช่น kru32-dev/kru32pass123)
+# enable ครั้งเดียว: git config core.hooksPath .githooks
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "⚠️  gitleaks ไม่ได้ติดตั้ง — ข้ามการสแกน secret (brew install gitleaks)"
+  exit 0
+fi
+
+gitleaks protect --staged --config .gitleaks.toml -v
