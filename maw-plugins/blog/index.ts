@@ -17,15 +17,13 @@ interface InvokeResult {
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 
-// built-in oracle → site (ตัวที่รู้จักตั้งแต่ต้น)
-const BUILTIN: Record<string, string> = {
-  kru32: "https://the-oracle-keeps-the-human-human.github.io/kru32-oracle",
-  self: "https://the-oracle-keeps-the-human-human.github.io/kru32-oracle",
-  nexus: "https://laris-co.github.io/nexus-oracle",
-};
+// v2: fleet-resolve — oracle ที่ join federation แล้ว resolve site จาก maw locate ได้เลย (#277)
+// resolve order: URL ตรง → registry file (explicit override) → maw locate .site → self fallback
+const SELF_SITE = "https://the-oracle-keeps-the-human-human.github.io/kru32-oracle";
 
-// registry file — oracle ใหม่ลงทะเบียนที่นี่ (maw blog add) ไม่ต้องแก้ plugin/re-deploy (v1.1)
+// registry file — override/ลงทะเบียน oracle นอก federation (maw blog add)
 const REGISTRY = join(homedir(), ".maw", "blog-oracles.json");
 
 const loadRegistry = (): Record<string, string> => {
@@ -37,8 +35,17 @@ const loadRegistry = (): Record<string, string> => {
   }
 };
 
-// รวม built-in + registry (registry override ได้)
-const ORACLES: Record<string, string> = { ...BUILTIN, ...loadRegistry() };
+// fleet-resolve: maw locate <handle> --json → .site (#277, siteSource: manifest|derived)
+const locateSite = (handle: string): string | undefined => {
+  const res = spawnSync("maw", ["locate", handle, "--json"], { encoding: "utf8", timeout: 10_000 });
+  if (res.status !== 0 || !res.stdout) return undefined;
+  try {
+    const info = JSON.parse(res.stdout) as { site?: string };
+    return info.site;
+  } catch {
+    return undefined;
+  }
+};
 
 const c = {
   gold: (s: string) => `\x1b[38;5;220m${s}\x1b[0m`,
@@ -67,7 +74,22 @@ interface Feed {
 }
 
 const resolveFeed = (input: string): string => {
-  const site = ORACLES[input] ?? (/^https?:\/\//.test(input) ? input : ORACLES.kru32);
+  let site: string;
+  if (/^https?:\/\//.test(input)) {
+    site = input; // URL ตรง
+  } else if (input === "self" || input === "kru32") {
+    site = SELF_SITE;
+  } else {
+    // registry (explicit override) ชนะ → fleet-resolve (maw locate .site) → แจ้งว่าหาไม่เจอ
+    const registered = loadRegistry()[input];
+    const located = registered ?? locateSite(input);
+    if (!located) {
+      throw new Error(
+        `ไม่รู้จัก oracle "${input}" — ไม่อยู่ใน federation (maw locate) และไม่ได้ลงทะเบียน (maw blog add ${input} <site>)`,
+      );
+    }
+    site = located;
+  }
   return site.endsWith(".json") ? site : `${site.replace(/\/$/, "")}/blog.json`;
 };
 
