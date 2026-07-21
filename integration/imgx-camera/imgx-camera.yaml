@@ -1,0 +1,112 @@
+# imgx-camera.yaml — mirror ภาพจากกล้อง camera-poc ขึ้นจอ JC3248W535
+#
+# บอร์ด: Guition JC3248W535 (ESP32-S3, AXS15231B 320x480 QSPI) — บอร์ดจอของ kru32
+# flow: imgx_ble_requester (BLE central) ดึง JPEG จากกล้อง -> on_image
+#        -> camera_mirror.decode_and_draw -> JPEGDEC -> subsample 640->320 -> วาดลงจอ
+#
+# panel init = reuse lesson-16 (mipi_spi model AXS15231, QSPI quad bus) เป๊ะ
+# camera peripheral: BLE name 'camera' MAC CC:BA:97:04:20:36 (UUID hardcode ใน component)
+#
+#   uvx esphome compile imgx-camera.yaml
+#   uvx esphome run imgx-camera.yaml --device /dev/cu.usbmodem211401
+
+esphome:
+  name: kru32-imgx-camera
+  friendly_name: Kru32 IMGX Camera Mirror
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+# PSRAM จำเป็น: imgx_ble_requester จอง reassembly buffer 256KB ใน SPIRAM + framebuffer จอ
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_SERIAL_JTAG
+
+# ── external components ──
+# imgx_ble_requester = drop-in จาก camera-poc (BLE central + IMGX state machine)
+# camera_mirror      = glue ฝั่งเรา (decode + scale + draw)
+external_components:
+  - source:
+      type: local
+      path: components
+    components: [imgx_ble_requester, camera_mirror]
+
+# ── QSPI bus (lesson-16) ──
+spi:
+  - id: lcd_spi
+    type: quad
+    clk_pin: GPIO47
+    data_pins: [GPIO21, GPIO48, GPIO40, GPIO39]
+
+# ── Backlight (lesson-16) ──
+output:
+  - platform: ledc
+    pin: GPIO1
+    id: backlight_pwm
+    frequency: 25000Hz
+
+light:
+  - platform: monochromatic
+    id: backlight
+    name: "Backlight"
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+# ── จอ AXS15231B (lesson-16 panel init) ──
+# update_interval: never = จอ flush เฉพาะตอน camera_mirror เรียก update() (ตอนได้เฟรมใหม่)
+#   ไม่งั้น lambda จะ fill ทับภาพกล้องทุก interval
+font:
+  - file: "gfonts://Roboto"
+    id: font_wait
+    size: 20
+    glyphs: "Kru32 IMGXwaitngcme."
+
+display:
+  - platform: mipi_spi
+    model: AXS15231
+    id: lcd
+    spi_id: lcd_spi
+    cs_pin: GPIO45
+    dimensions:
+      width: 320
+      height: 480
+    color_order: rgb
+    invert_colors: false
+    data_rate: 40MHz
+    update_interval: never
+    lambda: |-
+      // วาดครั้งแรกตอน boot — ข้อความรอเฟรมแรกจากกล้อง
+      // หลังจากนั้น camera_mirror วาดทับเอง (เรียก update() เมื่อได้ JPEG)
+      it.fill(Color::BLACK);
+      it.print(160, 240, id(font_wait), Color(0xFF, 0xD2, 0x7F),
+               TextAlign::CENTER, "Kru32 IMGX waiting camera...");
+
+# ── BLE central: เชื่อมกล้อง camera-poc ──
+esp32_ble_tracker:
+
+ble_client:
+  - mac_address: CC:BA:97:04:20:36
+    id: camera_ble
+
+# imgx_ble_requester — ดึง JPEG ทุก 5s เมื่อ connect + subscribe แล้ว
+imgx_ble_requester:
+  id: imgx_puller
+  ble_client_id: camera_ble
+  update_interval: 5s
+  on_image:
+    - lambda: |-
+        // data = JPEG เต็ม (CRC32-OK), len = ไบต์ · valid เฉพาะใน call นี้
+        id(cam_mirror).decode_and_draw(data, len);
+
+# camera_mirror — glue: decode + subsample + วาดลงจอ lcd
+camera_mirror:
+  id: cam_mirror
+  display_id: lcd
